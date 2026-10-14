@@ -1,0 +1,882 @@
+<title>AI Safety Career Map</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: one-screen app. Black title bar, path chips, then the chart (trunk on the left, six coloured paths running right between two shared bars). A detail panel slides over the right edge on click. */
+:root{
+  --paper:#eef1e7;--dot:#d9dfcf;--card:#ffffff;--ink:#1b1f27;--mute:#5a6372;--rule:#cdd4c6;--bar:#101216;--hi:#ffd400;
+  --t:#2b6de0;--p:#1f9d55;--o:#7a4fd8;--c:#d6398f;--op:#ec6a2c;--f:#b88a00;--ok:#1f9d55;--on:#fff;
+  --disp:"Barlow Condensed","Arial Narrow",Arial,sans-serif;--body:"Barlow","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#12161c;--dot:#1e252f;--card:#1a2029;--ink:#e8ebf1;--mute:#9aa4b5;--rule:#2c3441;--bar:#07090c;--hi:#ffd400;--t:#5b93ff;--p:#3fc27a;--o:#a183f5;--c:#f065b0;--op:#ff8a4d;--f:#e0b020;--ok:#3fc27a;--on:#0b0d10;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#12161c;--dot:#1e252f;--card:#1a2029;--ink:#e8ebf1;--mute:#9aa4b5;--rule:#2c3441;--bar:#07090c;--hi:#ffd400;--t:#5b93ff;--p:#3fc27a;--o:#a183f5;--c:#f065b0;--op:#ff8a4d;--f:#e0b020;--ok:#3fc27a;--on:#0b0d10;color-scheme:dark}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{margin:0;display:flex;flex-direction:column;background:var(--paper);color:var(--ink);font:15px/1.5 var(--body)}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+
+.bar{background:var(--bar);color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px}
+.bar>*{max-width:100%;min-width:0}
+.bar h1{font:700 26px/1 var(--disp);letter-spacing:.03em;text-transform:uppercase;margin:0}
+.bar .sub{font-size:13px;color:#b9c0cc;margin:0;flex:1;min-width:180px}
+.cta{background:var(--hi);color:#111;font:700 16px/1.1 var(--disp);letter-spacing:.02em;text-decoration:none;padding:9px 14px;border-radius:4px;text-transform:uppercase}
+.planbtn{background:none;border:1.5px solid #fff;color:#fff;font:600 16px/1.1 var(--disp);letter-spacing:.02em;padding:8px 12px;border-radius:4px;text-transform:uppercase}
+
+.chips{display:flex;gap:8px;align-items:center;padding:8px 16px;overflow-x:auto;border-bottom:1px solid var(--rule);background:var(--card)}
+.chip{flex:none;font:600 16px/1 var(--disp);letter-spacing:.03em;text-transform:uppercase;padding:8px 12px;border-radius:999px;border:2px solid var(--k,var(--ink));background:none;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--k,var(--ink));color:var(--on)}
+.chip.dark[aria-pressed="true"]{color:var(--paper)}
+.sep{flex:1;min-width:8px}
+.tool{flex:none;font:600 15px/1 var(--disp);text-transform:uppercase;letter-spacing:.03em;padding:9px 12px;border:1px solid var(--rule);border-radius:4px;background:var(--card)}
+
+.stage{flex:1;min-height:0;display:flex;position:relative}
+.mapwrap{flex:1;min-width:0;position:relative;overflow:hidden;touch-action:none;background-image:radial-gradient(var(--dot) 1.2px,transparent 1.3px);background-size:22px 22px;cursor:grab}
+.mapwrap.drag{cursor:grabbing}
+.mapwrap svg{width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none}
+.zoom{position:absolute;left:14px;bottom:14px;display:flex;gap:6px;z-index:2}
+.zoom .tool{font-size:18px;min-width:42px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.zoom{align-items:center}.hint{font:500 13px var(--body);color:var(--mute);background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:6px 9px}
+@media (max-width:820px){.hint{display:none}}
+.listwrap{flex:1;min-width:0;overflow:auto;padding:16px}
+.panel{position:absolute;top:0;right:0;bottom:0;width:400px;max-width:100%;overflow:auto;background:var(--card);border-left:2px solid var(--ink);padding:16px;z-index:3;box-shadow:-6px 0 18px rgba(0,0,0,.14)}
+@media (max-width:820px){.panel{top:auto;left:0;width:auto;max-height:62%;border-left:0;border-top:2px solid var(--ink)}}
+
+/* chart */
+.trunk{stroke:var(--ink);fill:none;stroke-linecap:round}
+.e{fill:none;stroke-linecap:round}
+.n,.pin,.lane,.sg,.tofound{cursor:pointer}
+.n,.e,.sg,.pin,.lane,.tofound{transition:opacity .25s}
+svg.focus .dim{opacity:.1}
+.lbl{font:600 22px var(--disp);fill:var(--ink);text-anchor:middle}
+.lbl.r{text-anchor:start}
+.hublbl{font:700 30px var(--disp);fill:var(--ink);text-anchor:middle;letter-spacing:.04em}
+.stg{font:700 18px var(--disp);text-anchor:middle;letter-spacing:.09em}
+.bk{fill:var(--paper);opacity:.92}
+.lanetxt{font:700 29px var(--disp);fill:var(--on);text-anchor:middle;letter-spacing:.05em}
+.bartxt{font:700 30px var(--disp);fill:var(--ink);text-anchor:middle;letter-spacing:.1em}
+.title{font:700 74px var(--disp);fill:var(--ink);letter-spacing:.02em}
+.tsub{font:500 30px var(--disp);fill:var(--mute)}
+.leg{font:500 22px var(--disp);fill:var(--mute)}
+.pname{font:600 19px var(--disp);fill:var(--ink)}
+.halo{fill:none;stroke:var(--hi);stroke-width:9;opacity:0}
+.n.sel .halo{opacity:1}
+.badge{display:none}.n.inplan .badge{display:block}
+@keyframes pulse{0%{r:60;opacity:.7}100%{r:92;opacity:0}}
+.pulse{fill:none;stroke:var(--hi);stroke-width:5;animation:pulse 2.2s ease-out infinite}
+svg.started .pulse{display:none}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:0}.n,.e{transition:none}}
+
+/* panel */
+.panel h2{font:700 30px/1.05 var(--disp);margin:0;letter-spacing:.01em;text-wrap:balance}
+.panel h3{font:700 15px/1 var(--disp);letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:18px 0 6px}
+.panel p{margin:8px 0 0}
+.ptop{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
+.tabs{display:flex;gap:6px}
+.tab{font:600 15px/1 var(--disp);text-transform:uppercase;letter-spacing:.05em;padding:7px 10px;border:1px solid var(--rule);border-radius:4px;background:none}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.stepper{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px;border-radius:6px;background:color-mix(in srgb,var(--k,var(--ink)) 14%,var(--card));border:2px solid var(--k,var(--ink))}
+.stepper span{flex:1;text-align:center;font:700 15px/1.15 var(--disp);letter-spacing:.06em;text-transform:uppercase}
+.stepper button{font:700 16px/1 var(--disp);text-transform:uppercase;letter-spacing:.03em;padding:9px 11px;border-radius:4px;border:0;background:var(--k,var(--ink));color:var(--on)}
+.stepper.ink button{color:var(--paper)}
+.stepper button:disabled{opacity:.35;cursor:default}
+.ph{display:flex;gap:12px;align-items:center}
+.av{flex:none;width:56px;height:56px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;border:3px solid var(--k,var(--ink))}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.act{background:var(--k,var(--ink))}.av svg{width:30px;height:30px}
+.av.sm{width:34px;height:34px;border-width:2px}.av.sm svg{width:18px;height:18px}
+.kind{font:600 14px/1.2 var(--disp);letter-spacing:.07em;text-transform:uppercase;color:var(--mute);margin:0 0 3px!important}
+.do{border:2px solid var(--ink);border-radius:6px;padding:10px 12px;margin-top:14px;background:var(--paper)}
+.do b{font:700 15px/1 var(--disp);letter-spacing:.09em;text-transform:uppercase}
+.do p{margin:4px 0 0;font-weight:500}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{font:700 17px/1 var(--disp);letter-spacing:.03em;text-transform:uppercase;padding:11px 14px;border-radius:4px;border:2px solid var(--ink);background:none;text-decoration:none}
+.btn.pri{background:var(--ink);color:var(--paper)}
+.btn.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.pill{display:inline-block;font:600 14px/1 var(--disp);letter-spacing:.05em;text-transform:uppercase;color:var(--on);background:var(--k);padding:6px 10px;border-radius:999px;border:0;margin:0 4px 4px 0}
+.myth{font:600 22px/1.2 var(--disp);margin-top:10px!important}
+.rowbtn{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--rule);padding:8px 0}
+.rowbtn span.t{flex:1;min-width:0;font-weight:500}
+.rowbtn small{color:var(--mute);font-size:12.5px;display:block;font-weight:400}
+.h3btn{background:none;border:0;padding:0;font:700 15px/1 var(--disp);letter-spacing:.09em;text-transform:uppercase;color:color-mix(in srgb,var(--k) 75%,var(--ink));margin:18px 0 6px;display:block;text-decoration:underline;text-underline-offset:3px}
+details.more{border-top:1px solid var(--rule)}
+details.more summary{cursor:pointer;padding:8px 0;font:600 15px/1.2 var(--disp);letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+details.more[open] summary{color:var(--ink)}
+.plan li{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--rule);padding:10px 0}
+.plan ul{list-style:none;margin:8px 0 0;padding:0}
+.plan input{width:20px;height:20px;margin-top:2px;flex:none}
+.plan .t{flex:1;min-width:0}.plan .done{text-decoration:line-through;color:var(--mute)}
+.x{background:none;border:0;font-size:22px;line-height:1;color:var(--mute);padding:2px 6px}
+.mute{color:var(--mute);font-size:13px}
+.listwrap h2{font:700 28px/1 var(--disp);text-transform:uppercase;letter-spacing:.03em;margin:22px 0 4px;color:var(--k,var(--ink))}
+.listwrap h3{font:700 14px/1 var(--disp);letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:14px 0 2px}
+.listwrap section{max-width:720px;margin:0 auto}
+</style>
+
+<header class="bar">
+  <h1>The AI Safety Career Map</h1>
+  <p class="sub">One starting point, six paths. Click any circle to see what it is and what to do about it today.</p>
+  <a class="cta" href="https://bluedot.org/courses/agi-strategy" target="_blank" rel="noopener">Do one thing today: apply to BlueDot's AGI Strategy course &#8599;</a>
+  <button class="planbtn" id="planbtn">My plan (0)</button>
+</header>
+<nav class="chips" id="chips" aria-label="Paths"></nav>
+<main class="stage">
+  <div class="mapwrap" id="mapwrap"><svg id="map" role="group" aria-label="AI safety career map"></svg>
+  </div>
+  <div class="listwrap" id="listwrap" hidden></div>
+  <aside class="panel" id="panel" hidden aria-live="polite"></aside>
+</main>
+
+<script src="logos.js"></script>
+<script>
+const LG = window.LOGOS || {};
+const W = 3840, H = 1840;
+const SX = [1960, 2360, 2760, 3160, 3560];        // stage columns
+const ROW = [100, 370, 640, 910, 1180, 1450, 1720]; // rows of circles between the path lines
+const PILLX = 1500, BAR1 = 1700, BAR2 = 3770;
+const ICON = {
+  doc:"M7 3h7l4 4v14H7z M14 3v4h4 M10 12h5 M10 16h5", pencil:"M4 20l1-4L16 5l3 3L8 19z M14 7l3 3", chat:"M4 5h16v10H10l-4 4v-4H4z",
+  people:"M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 5.5a3 3 0 0 1 0 5.5 M17 14.3c2.3.8 4 3 4 5.7",
+  play:"M8 5v14l11-7z", mail:"M3 6h18v12H3z M3 7l9 6 9-6", search:"M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M16 16l5 5", flag:"M5 21V4 M5 4h12l-2 4 2 4H5",
+  star:"M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.9 6.6 19.8l1.1-6.1L3.2 9.4l6.1-.8z", target:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+  flask:"M9 3h6 M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3 M8 15h8", book:"M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z M4 21V5 M8 7h7",
+  megaphone:"M4 10v4h3l8 4V6l-8 4z M18 9a4 4 0 0 1 0 6", heart:"M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z",
+  compass:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M15.5 8.5l-2 5-5 2 2-5z", briefcase:"M3 8h18v11H3z M9 8V5h6v3 M3 13h18",
+  cap:"M2 9l10-5 10 5-10 5z M6 11.5V16c2 2 10 2 12 0v-4.5 M22 9v5", building:"M5 21V4h9v17 M14 9h5v12 M8 8h3 M8 12h3 M8 16h3 M3 21h18",
+  repeat:"M4 12a8 8 0 0 1 14-5l2-2v6h-6l2-2a5.5 5.5 0 0 0-9.5 3 M20 12a8 8 0 0 1-14 5l-2 2v-6h6l-2 2a5.5 5.5 0 0 0 9.5-3",
+  up:"M12 20V5 M5 12l7-7 7 7"
+};
+
+const LANES = [
+ { id:"technical", name:"Technical", y:235, color:"--t", stages:["Learn","Build","Programs","Roles","Grow"],
+   myth:"You don't need a PhD, and the big AI companies aren't the only employers.",
+   why:"Someone has to test, understand and secure these systems. Labs, independent research groups and governments all hire full-time safety researchers and engineers.",
+   pay:"Fellowships pay a living stipend or better (Anthropic Fellows pays about $3,850 a week). UK AI Security Institute technical roles run roughly £65k to £145k.",
+   caveat:"Entry-level research is the most crowded part of the field, and top fellowships accept under 10%. Aim at neglected areas such as AI security, AI control and technical governance, and expect rejections along the way." },
+ { id:"policy", name:"Policy", y:505, color:"--p", stages:["Read","Write","Fellowships","Roles","Grow"],
+   myth:"You don't need to code, and you don't need to live in DC.",
+   why:"The rules for the most powerful AI systems are being written now. The people writing them are short on colleagues who understand both how government works and what the technology can do.",
+   pay:"Horizon Fellowship salaries for the 2027 cohort: $78k junior, $130k fellow, $190k+ senior. GovAI research fellows in DC earn $134.5k to $170k.",
+   caveat:"Don't be a generic AI governance person. Pick one tool, such as export controls, liability or safety standards, and get good at it. Most US executive-branch roles need US citizenship; the EU and UK routes don't." },
+ { id:"outside", name:"Outside work", y:775, color:"--o", stages:["Speak up","Join","Show up","Go further","Lead"],
+   myth:"You don't need a new job to matter.",
+   why:"Laws only pass when lawmakers hear from the people they represent. One prepared constituent gets far more attention than a thousand copies of a form email.",
+   pay:"This path is unpaid by default. Advocacy groups do hire organisers and communications staff, and PauseAI offers microgrants and small stipends for local organisers.",
+   caveat:"These groups don't always agree with each other, so pick the one that matches what you believe. The advice on contacting lawmakers here is written for the US." },
+ { id:"comms", name:"Communications", y:1045, color:"--c", stages:["Post","Sharpen","Fellowships","Get hired","Grow"],
+   myth:"You don't need a technical background to explain AI risk, and there are paid ways in.",
+   why:"Most AI media is either hype or science-fiction panic. Very few people translate what is happening at AI companies, and what regulators should do, into something normal people will watch or read.",
+   pay:"Tarbell fellows earn $75k to $120k during a nine-month newsroom placement. Research organisations hire writers, editors and video producers on salary.",
+   caveat:"Nobody starts good. Stay concrete, avoid date-stamped predictions, and know whether you are doing journalism or advocacy, because the rules differ." },
+ { id:"ops", name:"Operations", y:1315, color:"--op", stages:["Scout","Run something","Programs","Roles","Grow"],
+   myth:"The field's biggest talent gap isn't researchers. It's people who can run things.",
+   why:"Every research team, advocacy group and fellowship needs someone who makes it run: hiring, budgets, events, managing people. Kairos and Constellation count about 20 research fellowships against about 7 for everyone else, and non-research roles often get fewer than five qualified applicants.",
+   pay:"Senior roles can pay six figures. The Center for AI Safety listed a Chief of Staff at $220k to $345k; Encode listed one at $160k to $220k. Smaller organisations pay less.",
+   caveat:"Organisations want operators who understand the field, not generic admin. Build context first, and talk to people before sending cold applications." },
+ { id:"founders", name:"Founders", y:1585, color:"--f", stages:["Find a gap","Shape it","Incubators","Launch","Scale"],
+   myth:"There is room for new organisations, and the important ones don't all exist yet.",
+   why:"Funders say money is available and founders are the bottleneck. Halcyon Futures reports helping launch about 30 organisations. Nonprofits and for-profit startups both count.",
+   pay:"Incubators cover living costs while you build. Seldon invests up to $500k per startup; Constellation's incubator gives four months of funding and operations support.",
+   caveat:"This is the highest-variance path on the map. Most new organisations don't become big successes, so test the idea cheaply before you quit anything." }
+];
+const LANE = Object.fromEntries(LANES.map(l => [l.id, l]));
+const ALL = LANES.map(l => l.id);
+
+const NODES = [];
+// Trunk node at an explicit position. "hub" = big dark circle, "sat" = hangs off one or more hubs.
+const T = (id, x, y, type, label, o) => NODES.push({ id, type, label, lanes: [], st: {}, pos: [{ x, y, lanes: [] }], ...o });
+// Path node: row of circles, stage column, slot (-1..1), paths it sits on. o.also = extra positions for paths that aren't adjacent.
+const L = (id, row, stage, slot, label, lanes, o = {}) => {
+  const all = [[row, stage, slot, lanes], ...(o.also || [])], st = {};
+  const pos = all.map(([r, s, sl, ls]) => { ls.forEach(l => st[l] = s); return { x: SX[s] + sl * 135, y: ROW[r], stage: s, lanes: ls }; });
+  NODES.push({ id, type: "leaf", label, lanes: ALL.filter(l => l in st), st, pos, ...o });
+};
+// Extra option: not drawn on the map, listed in panels and the list view. at = "lane:stage" slots, or ids of circles it sits under.
+const X = (id, at, label, o) => {
+  const st = {}; let trunk = false;
+  at.forEach(a => { const [l, s] = a.split(":"); if (s !== undefined) return st[l] = +s;
+    const p = NODES.find(n => n.id === a); if (!p.lanes.length) trunk = true; p.lanes.forEach(pl => pl in st || (st[pl] = p.st[pl])); });
+  NODES.push({ id, type: "extra", label, at, trunk, lanes: ALL.filter(l => l in st), st, pos: [], ...o });
+};
+
+/* ---------- trunk ---------- */
+T("start", 110, 910, "hub", "START HERE", { icon:"flag", kind:"Start", tag:"No experience needed",
+  text:"Most people stall before they start because they think they aren't qualified. You don't need to be. The map reads left to right: stay interested, learn the basics, then pick one of six paths. Circles with more than one colour in their ring sit on several paths at once, so early steps keep more than one door open.",
+  do:"Press Next to walk through the first steps, and add three of them to your plan." });
+T("stay", 370, 910, "hub", "STAY INTERESTED", { icon:"repeat", kind:"Habit", tag:"A few minutes a day", parent:["start"],
+  text:"Most people who watch a video about AI risk feel worried for a day and then forget. The people who end up doing something keep the topic in their week: a podcast on the commute, a few good accounts in their feed, one friend to talk to. Make sure you understand the risks well enough to care about them, because that is what carries you through the boring parts.",
+  do:"Set up one of the six habits around this circle right now. It takes two minutes." });
+T("podcasts", 270, 690, "sat", "Listen:\npodcasts", { logo:"80k", parent:["stay"], kind:"Habit", tag:"Free · on your commute", url:"https://80000hours.org/podcast/", link:"Open the podcast",
+  text:"The 80,000 Hours Podcast runs long interviews with people who work on AI safety and policy. AXRP goes deeper on technical research. Hearing people in the field talk for an hour is the easiest way to pick up how they think.",
+  do:"Subscribe to the 80,000 Hours Podcast and queue one AI episode for your next commute." });
+T("watch", 420, 690, "sat", "Watch:\nexplainers", { logo:"youtube", parent:["stay"], kind:"Habit", tag:"Free · 10 to 30 min", url:"https://www.youtube.com/@RationalAnimations", link:"Open a channel",
+  text:"Rob Miles, Rational Animations and 80,000 Hours' AI in Context channel explain the core ideas visually and well.",
+  do:"Watch one video tonight and send it to a friend with one line on why it stuck." });
+T("real", 345, 480, "sat", "Make it real:\nAI 2027", { logo:"ai2027", parent:["stay"], kind:"Reading", tag:"Free · about 1 hr", url:"https://ai-2027.com", link:"Read AI 2027",
+  text:"Worry fades unless you understand the actual argument. AI 2027 is a concrete scenario for how the next few years could go. 80,000 Hours' problem profile lays out the case and where the uncertainty is. Read one and decide where you agree and disagree.",
+  do:"Read one of them this week and write down your three biggest questions." });
+T("follow", 270, 1130, "sat", "Follow people\nin the field", { logo:"x", parent:["stay"], kind:"Habit", tag:"Free · 2 minutes", url:"https://x.com", link:"Open X",
+  text:"Following working researchers and policy people shows you what the field is arguing about this week. Start with the organisations on this map, then follow the people they repost. Good first follows include Peter Wildeford, Miles Brundage, Helen Toner, Kelsey Piper and Neel Nanda.",
+  do:"Follow five accounts now, starting with organisations on this map." });
+T("news", 420, 1130, "sat", "Read:\nnewsletters", { logo:"transformer", parent:["stay"], kind:"Habit", tag:"Free · weekly", url:"https://www.transformernews.ai", link:"Open Transformer",
+  text:"Transformer covers AI power and policy every week. The Center for AI Safety's AI Safety Newsletter is a short digest. Either one keeps you current in ten minutes a week.",
+  do:"Subscribe to one and read it for four weeks before you judge it." });
+T("buddy", 345, 1350, "sat", "Find your\npeople", { logo:"aisafety", parent:["stay"], kind:"Community", tag:"Free", url:"https://www.aisafety.com/communities", link:"Find a community",
+  text:"It is much easier to keep going with other people. AISafety.com lists local groups, online communities and events around the world.",
+  do:"Find the nearest group or one online community and put its next event in your calendar." });
+
+T("learn", 640, 910, "hub", "LEARN THE BASICS", { icon:"book", kind:"Step 1", tag:"A few weeks, not six months", parent:["stay"],
+  text:"Build enough context to know the vocabulary and the main problems. Don't fall into the trap of collecting courses for six months because you are scared you aren't qualified yet. One course and a reading habit is enough to move on.",
+  do:"Apply to BlueDot's AGI Strategy course today, and do the two-hour intro while you wait." });
+T("bd_intro", 545, 690, "sat", "BlueDot:\nFuture of AI", { logo:"bluedot", parent:["learn"], kind:"Course", tag:"Free · 2 hrs · no application", url:"https://bluedot.org", link:"Open BlueDot",
+  text:"A two-hour, self-paced introduction to where AI is heading and why it matters. No application and no background needed.",
+  do:"Do it in one sitting this week." });
+T("bd_agi", 690, 690, "sat", "BlueDot:\nAGI Strategy", { logo:"bluedot", parent:["learn"], kind:"Course", tag:"Free · about 25 hrs · short application", url:"https://bluedot.org/courses/agi-strategy", link:"Apply now", star:1,
+  text:"The course most paths on this map start with. About 25 hours with a small group and a facilitator. It is built for people redirecting skills they already have, as well as newcomers. In an 80,000 Hours survey of AI safety hiring managers, BlueDot courses were the most-mentioned way to get up to speed.",
+  do:"Apply in the next 24 hours. This is the single step we would pick if you only do one." });
+T("reading", 575, 1130, "sat", "Read 30 min\na day", { icon:"book", parent:["learn"], kind:"Habit", tag:"Free · 30 min a day", url:"https://80000hours.org/2026/09/how-to-get-into-ai-safety-in-three-months/", link:"Read the 3-month guide",
+  text:"A daily reading habit beats a weekend binge. Use SPAR's reading list or 80,000 Hours' essential resources, and read 80,000 Hours' guide to getting into AI safety in three months for a plan to follow.",
+  do:"Block 30 minutes in your calendar for each of the next 14 days." });
+T("fieldmap", 710, 1130, "sat", "AISafety.com\nfield map", { logo:"aisafety", parent:["learn"], kind:"Directory", tag:"Free", url:"https://www.aisafety.com", link:"Open AISafety.com",
+  text:"A directory of the whole field: courses, communities, events, funders, jobs and a map of organisations. Ten minutes here shows you how much exists.",
+  do:"Browse the map and note three organisations you'd want to work with." });
+
+T("student", 960, 560, "hub", "STUDENT", { icon:"cap", kind:"If you're at university", tag:"Time is on your side", parent:["learn"],
+  text:"Don't try to build the correct AI safety resume too early. Use university to test several versions of yourself cheaply. Your major is not an obstacle; it is usually your advantage. Pair organising with something that still exists after you graduate: a paper, a project, a policy memo, a thesis or an internship.",
+  do:"Join your campus AI safety group this week. If there isn't one, start one." });
+T("campus", 790, 400, "sat", "Join or start a\ncampus group", { logo:"aisafety", parent:["student"], kind:"Community", tag:"Free · this week", url:"https://www.aisafety.com/communities", link:"Find your campus group",
+  text:"A campus group gives you people, mentors, speakers and proof on your resume that you know the field. If none exists, start one. Programs such as Pathfinder and the AI Safety Seeding Initiative mentor and fund new organisers.",
+  do:"Look up your university's group and go to its next meeting. If there isn't one, message two friends about starting it." });
+T("pathfinder", 905, 310, "sat", "Pathfinder\nFellowship", { logo:"kairos", parent:["student"], kind:"Program", tag:"Mentor + funding · one semester", url:"https://pathfinder.kairos-project.org/", link:"Open Pathfinder",
+  text:"Kairos's fellowship for students who run AI safety or AI policy groups. You get a weekly mentor, $500 in starter funding and more for group activities. Past fellows have gone on to Coefficient Giving, Constellation, the UK AI Security Institute and Redwood Research. Fall 2026 is closed.",
+  do:"Join the interest list so you hear when the next round opens." });
+T("major", 1035, 310, "sat", "Match your major\nto a project", { icon:"target", parent:["student"], kind:"Action", tag:"One small project",
+  text:"Computer science: ask a professor or grad student to supervise a small technical safety project. Economics: write about how AI affects markets. Politics: analyse a real AI bill for your thesis. Journalism: report on how your university is adopting AI.",
+  do:"Write one sentence: my major is X, so my project is Y. Send it to one professor." });
+T("uni", 1150, 400, "sat", "Use what your\nuniversity gives", { icon:"building", parent:["student"], kind:"Action", tag:"While you still have it",
+  text:"Professors who will supervise you, research credits, student funding, free rooms and classmates willing to build things for no money. These disappear the day you graduate.",
+  do:"Ask your department whether you can get research credit for an AI safety project next term." });
+
+T("mid", 960, 1260, "hub", "MID-CAREER", { icon:"briefcase", kind:"If you already have a career", tag:"Keep your seniority", parent:["learn"],
+  text:"Do not throw away your seniority to become a beginner. Work out what people already trust you to do: securing systems, managing teams, hiring, negotiating with governments, explaining technical ideas, running large projects. Then find where AI safety has that exact problem.",
+  do:"Write down the one thing you are unusually good at, and name two organisations on this map that need it." });
+T("successif", 790, 1420, "sat", "Successif\nadvising", { logo:"successif", parent:["mid"], kind:"Advice", tag:"Free · 1:1", url:"https://www.successif.org/", link:"Open Successif",
+  text:"Free career advising built for experienced professionals moving into AI safety and governance, with workshops and introductions.",
+  do:"Apply for advising. Bring your CV and one question." });
+T("hip", 905, 1510, "sat", "Impact\nAccelerator", { logo:"hip", parent:["mid"], kind:"Program", tag:"Free · 6 weeks · online", url:"https://www.highimpactprofessionals.org/impact-accelerator", link:"Open the program",
+  text:"High Impact Professionals runs a free six-week online program for mid-career and senior people planning a move into high-impact work, in groups of about five with a facilitator. It added an entrepreneurship track in 2026.",
+  do:"Check the next cohort date and apply." });
+T("translate", 1035, 1510, "sat", "Translate your\nexpertise", { icon:"repeat", parent:["mid"], kind:"Action", tag:"A few weeks of reading",
+  text:"The most common reason senior people get rejected is missing context about the field, not missing skill. Spend enough time learning AI safety that you can describe your existing expertise in its language.",
+  do:"Rewrite the top third of your CV for one specific AI safety job posting." });
+T("talk10", 1150, 1420, "sat", "10 chats before\n50 applications", { icon:"chat", parent:["mid"], kind:"Action", tag:"One message a day",
+  text:"Hiring for senior roles in this field runs on relationships. Ten targeted conversations will teach you more than fifty cold applications, and one of them may lead to an introduction.",
+  do:"Message one person who has the job you want and ask for 20 minutes." });
+// Shared by students and mid-career people: a column of stops between the two hubs.
+T("advising", 960, 795, "sat", "Career\nadvising", { logo:"80k", parent:["student","mid"], lp:"r", kind:"Advice", tag:"Free · 1:1 call · students and professionals", url:"https://80000hours.org/speak-with-us/", link:"Apply for a call",
+  text:"80,000 Hours offers free one-on-one career advising to students and working professionals alike. Advisers point you to organisations, jobs and programs you didn't know existed, and often introduce you to people working there.",
+  do:"Apply for a call today. The form takes about 20 minutes." });
+T("jobs", 960, 910, "sat", "Job board", { logo:"80k", parent:[], lp:"r", kind:"Jobs", tag:"Free · hundreds of roles", url:"https://jobs.80000hours.org", link:"Open the job board",
+  text:"The 80,000 Hours job board lists hundreds of open roles and internships across research, policy, operations and communications. Read it before you feel ready, to learn what employers actually ask for.",
+  do:"Open three listings that sound like you. Write down the two requirements you don't meet yet." });
+T("funding", 960, 1025, "sat", "Transition\nfunding", { logo:"bluedot", parent:["student","mid"], lp:"r", kind:"Funding", tag:"$20k to $200k · rolling", url:"https://bluedot.org/grants/career-transition", link:"Open Career Transition Grants",
+  text:"Money shouldn't be what stops you. In September 2026 Coefficient Giving handed its career development and transition funding to BlueDot. BlueDot's Career Transition Grants usually start at $20k and go up to $200k, for people ready to switch full-time: time to produce research or policy work, fill a skill gap or test a path. The application takes about 45 minutes and asks for recent work, milestones and a simple budget. For something smaller, Rapid Grants go up to $20k.",
+  do:"Check BlueDot's grants page and note what you'd ask for and why." });
+
+T("pick", 1250, 910, "hub", "PICK A PATH", { icon:"compass", kind:"Step 2", tag:"Six paths", parent:["learn"],
+  text:"Six paths, and most don't need a technical background. They overlap on purpose: a circle with several colours in its ring belongs to several paths, so you can start before you have fully decided. Two bars cross every path: reaching out to people at the start, and meeting the field in person at the end. Your route probably won't be a straight line.",
+  do:"Click a coloured path name to see the whole route and what it pays, then press Start this path." });
+
+/* ---------- the two bars every path crosses ---------- */
+NODES.push({ id:"reach", type:"bar", x:BAR1, label:"REACH OUT TO PEOPLE IN YOUR FIELD", seg:["REACH OUT","TO PEOPLE","IN YOUR","FIELD","FIRST"], icon:"chat", lanes:ALL, st:Object.fromEntries(ALL.map(l => [l, -1])), pos:[{ x:BAR1, y:910, lanes:ALL }],
+  kind:"Every path", tag:"Free · one message a day",
+  text:"This is the step every path shares. People in AI safety love to help, and they want more people in the field. Find someone doing the work you want to do, whatever your field is, and ask them one specific question. Most will say yes to twenty minutes. One conversation often leads to an introduction, a project or a job you would never have seen posted.",
+  do:"Message one person today. Three sentences: who you are, what you liked about their work, and one specific question." });
+NODES.push({ id:"events", type:"bar", x:BAR2, label:"GO TO EVENTS · MEET THE FIELD IN PERSON", seg:["GO TO EVENTS","MEET","THE FIELD","IN PERSON","OFTEN"], icon:"people", lanes:ALL, st:Object.fromEntries(ALL.map(l => [l, 9])), pos:[{ x:BAR2, y:910, lanes:ALL }],
+  kind:"Every path", tag:"Conferences and meetups", url:"https://www.aisafety.com/events", link:"Open the events calendar",
+  text:"Whatever path you're on, people hire people they have met. AISafety.com keeps a calendar of conferences, workshops and meetups. EA Global has a large AI safety track and runs in San Francisco (19 to 21 March 2027), London (28 to 30 May 2027) and Washington DC (15 to 17 October 2027). ControlConf covers AI control research. One good conversation in person can do more than a month of applications.",
+  do:"Pick one event in the next three months and apply or register today." });
+
+/* ---------- paths ---------- */
+// Row 0: technical
+L("bdtech",0,0,-.6,"BlueDot: Technical\nAI Safety",["technical"],{logo:"bluedot",kind:"Course",tag:"Free · part-time",url:"https://bluedot.org",link:"Open BlueDot",
+  text:"The technical version of BlueDot's course: why making AI safe is hard, what current techniques can and can't do, and where you could contribute.",do:"Apply to the next cohort."});
+L("arena",0,0,.6,"ARENA",["technical"],{logo:"arena",kind:"Course",tag:"Free online · or 5 weeks in London",url:"https://www.arena.education/",link:"Open ARENA",
+  text:"A hands-on machine learning curriculum focused on AI safety. The material is free online, and there is a funded in-person bootcamp in London several times a year.",do:"Open the first chapter and do one exercise tonight."});
+L("labproject",0,1,-1,"Join a lab\nproject",["technical"],{icon:"flask",kind:"Action",tag:"One semester",
+  text:"A supervised project in a university lab is how many researchers start. It doesn't need to be an AI safety lab: any solid machine learning research experience counts.",do:"Email one professor or grad student with a two-line project idea."});
+L("apart",0,1,0,"Apart\nhackathons",["technical"],{logo:"apart",kind:"Event",tag:"Free · one weekend",url:"https://apartresearch.com",link:"Open Apart Research",
+  text:"Weekend research sprints on AI safety topics, online and in local hubs. A fast way to finish a first project and find collaborators.",do:"Sign up for the next sprint."});
+L("neglected",0,1,1,"Pick a\nneglected area",["technical"],{icon:"target",kind:"Action",tag:"Choose before you specialise",
+  text:"Some areas, such as mechanistic interpretability, are crowded. Three that need more people: AI security, which stops bad actors or the models themselves from getting past the guardrails. AI control, which is about supervising huge numbers of AI systems that might misbehave. Technical governance, which builds tools such as ways to check what a data centre is being used for, so countries can verify each other.",do:"Read one paper from each area and pick the one you'd happily spend a year on."});
+L("mats",0,2,-1,"MATS",["technical"],{logo:"mats",kind:"Fellowship",tag:"Funded · about 10 weeks",url:"https://www.matsprogram.org/",link:"Open MATS",
+  text:"The best-known research fellowship in the field. You work with a mentor on a research project, with a stipend, compute and housing. Around 80% of alumni now work in AI safety. Fewer than 10% of applicants get in.",do:"Read the mentor list and note two whose work you could contribute to."});
+L("anthfellows",0,2,0,"Anthropic\nFellows",["technical"],{logo:"anthropic",kind:"Fellowship",tag:"About $3,850 a week · 4 months",url:"https://www.anthropic.com",link:"Open Anthropic",
+  text:"A paid safety research fellowship with mentorship from Anthropic researchers. It doesn't require a PhD or published papers, and a large share of fellows have received full-time offers.",do:"Check when the next cohort opens and put the date in your calendar."});
+L("lasr",0,2,1,"LASR Labs",["technical"],{logo:"lasr",kind:"Fellowship",tag:"Funded · 13 weeks · London",url:"https://www.lasrlabs.org/",link:"Open LASR Labs",
+  text:"A 13-week research program in London that runs three times a year, with a stipend of about £15,000. Good if you're based in the UK or Europe.",do:"Check the next application window."});
+L("labs",0,3,-1,"Lab safety\nteams",["technical"],{logo:"deepmind",kind:"Employer",tag:"Full-time",url:"https://jobs.80000hours.org",link:"See open roles",
+  text:"Anthropic, Google DeepMind and OpenAI all have safety teams with direct access to the most capable models. Whether working at a lab helps or speeds things up is a real debate in the field, so read both sides.",do:"Read three lab safety job postings and list the skills they share."});
+L("redwood",0,3,0,"Redwood\nResearch",["technical"],{logo:"redwood",kind:"Employer",tag:"Full-time",url:"https://www.redwoodresearch.org",link:"Open Redwood",
+  text:"An independent research group known for its work on AI control. One of several independent groups that hire, alongside Apollo Research, FAR.AI and Palisade Research.",do:"Read one Redwood post on AI control."});
+L("metr",0,3,1,"METR",["technical"],{logo:"metr",kind:"Employer",tag:"Full-time",url:"https://metr.org",link:"Open METR",
+  text:"An independent group that tests what frontier AI systems can actually do, so that companies and governments know what they are dealing with.",do:"Read METR's latest evaluation report."});
+L("publish",0,4,-.6,"Publish and\npresent",["technical"],{icon:"doc",kind:"Action",tag:"After every project",
+  text:"Write up what you did and put it where the field reads: arXiv, the Alignment Forum, workshop papers. Public work is what gets you the next role, and it is how other researchers find you.",do:"Turn your last project into a two-page write-up and post it."});
+L("leadresearch",0,4,.6,"Lead a\nresearch agenda",["technical"],{icon:"up",kind:"Action",tag:"Two to four years in",
+  text:"After a first role, the next steps are leading projects, managing other researchers, or taking a neglected problem and building a team around it. People who can both do research and manage it are in short supply.",do:"Ask your manager or mentor what leading a project would take, and volunteer for the next one."});
+// Row 1: technical + policy
+L("bdgov",1,0,-.6,"BlueDot:\nAI Governance",["policy"],{logo:"bluedot",kind:"Course",tag:"Free · no technical background",url:"https://bluedot.org",link:"Open BlueDot",
+  text:"A fast way to get up to speed on how advanced AI could be governed. No technical background needed.",do:"Apply to the next cohort."});
+L("readlaw",1,0,.6,"Read one real\nAI law",["policy"],{icon:"doc",kind:"Action",tag:"One evening",
+  text:"Read actual law and actual company safety policies, not commentary about them. Try California's SB 53 or a chapter of the EU AI Act, and one AI company's published safety framework.",do:"Read one tonight and write five bullet points on what it requires."});
+L("spar",1,1,-1,"SPAR",["technical","policy"],{logo:"kairos",kind:"Program",tag:"Part-time · remote · 3 months",url:"https://spar.kairos-project.org/",link:"Open SPAR",also:[[4,2,0,["comms","ops"]]],
+  text:"A part-time, remote program that pairs you with a mentor on a real project. Most projects are technical safety research and nearly 30% are AI policy, but there is also a generalist stream for field-building and operations questions, and a few communications projects. The latest round had more than 800 mentees. It is the easiest first rung on the ladder. Applications for Spring 2027 open around December.",do:"Join the mailing list so you see the project list when applications open, and note which stream fits you."});
+L("techgov",1,1,0,"Technical\ngovernance",["technical","policy"],{icon:"compass",kind:"Focus area",tag:"Where the two paths meet",
+  text:"Policy that needs engineers: checking what data centres are used for, tracking AI chips, building tests that regulators can rely on. Technical people who can write for policymakers are rare, and policy people who understand the hardware are rarer.",do:"Read GovAI's report on computing power and AI governance."});
+L("tool",1,1,1,"Pick one\ntool",["policy"],{icon:"target",kind:"Action",tag:"Decide this month",
+  text:"Who writes the rule that makes a company responsible if its AI causes serious damage? Who sets the standard for whether a system is safe to release? Pick one tool, such as export controls, liability or safety standards, and become the person who knows it.",do:"Choose one tool and find the three people who write about it most."});
+L("astra",1,2,-1,"Astra\nFellowship",["technical","policy"],{logo:"constellation",kind:"Fellowship",tag:"About $8,400 a month · Berkeley",url:"https://constellation.org/programs",link:"Open Constellation",
+  text:"Constellation's three-to-six-month fellowship in Berkeley, with separate streams for empirical research and for strategy and governance. More than 80% of the first cohort now work full-time in AI safety.",do:"Read the mentor list for the stream that fits you."});
+L("era",1,2,0,"ERA\nFellowship",["technical","policy"],{logo:"era",kind:"Fellowship",tag:"Funded · 10 weeks · Cambridge UK",url:"https://erafellowship.org",link:"Open ERA",
+  text:"A ten-week summer fellowship in Cambridge with tracks for technical safety, technical governance and AI governance.",do:"Check next summer's application dates."});
+L("horizon",1,2,1,"Horizon\nFellowship",["policy"],{logo:"horizon",kind:"Fellowship",tag:"$78k to $190k+ · Washington DC",url:"https://horizonpublicservice.org/",link:"Open Horizon",
+  text:"Places fellows in Congress, federal agencies and think tanks for one to two years, with training in how government works. Applications for the 2027 cohort closed in August 2026.",do:"Sign up for updates and start the policy memo you'd need for the application."});
+L("aisi",1,3,-1,"UK AI Security\nInstitute",["technical","policy"],{logo:"aisi",kind:"Employer",tag:"£65k to £145k",url:"https://www.aisi.gov.uk",link:"Open AISI",
+  text:"A government body that tests frontier AI systems and advises on policy. It hires researchers, engineers and policy staff, and proves this is a real career inside government.",do:"Read one open role and note the skills it asks for."});
+L("rand",1,3,0,"RAND",["technical","policy"],{logo:"rand",kind:"Employer",tag:"Full-time",url:"https://www.rand.org",link:"Open RAND",
+  text:"A large research organisation whose AI and security teams work on topics such as protecting AI model weights from theft. It hires both technical and policy researchers.",do:"Read the summary of RAND's report on securing model weights."});
+L("cset",1,3,1,"Think tanks:\nCSET",["policy"],{logo:"cset",kind:"Employer",tag:"Full-time",url:"https://cset.georgetown.edu",link:"Open CSET",
+  text:"Georgetown's Center for Security and Emerging Technology is one of several think tanks that hire AI policy researchers, alongside GovAI, IAPS and CNAS.",do:"Read one CSET brief on a topic near your chosen tool."});
+L("mentor",1,4,0,"Mentor the\nnext cohort",["technical","policy"],{logo:"kairos",kind:"Action",tag:"A few hours a week",url:"https://spar.kairos-project.org/",link:"Open SPAR",
+  text:"Once you've done a program, come back as a mentor. SPAR's latest round had more than 250 mentors. Mentoring is how researchers and policy people learn to lead, and it is how the field grows.",do:"Draft a small project you could supervise and submit it for the next round."});
+// Row 2: policy + outside work
+L("etp",2,0,-.6,"Emerging Tech\nPolicy Careers",["policy"],{logo:"etp",kind:"Guide",tag:"Free",url:"https://emergingtechpolicy.org",link:"Open the guide",
+  text:"The clearest map of routes into US technology policy: fellowships, graduate programs, think tanks and how Congress and the agencies actually work.",do:"Read the page for the institution you'd most like to work in."});
+L("rep",2,0,.6,"Meet your\nrepresentative",["outside"],{icon:"mail",kind:"Action",tag:"15 minutes · this week",
+  text:"Talk to your representatives directly. Skip petitions and letter templates, because identical messages get batched and ignored. Book a short call or visit the local office with two clear asks: make the biggest AI projects tell the government what they are building, and make a company legally responsible if its AI causes serious damage.",do:"Find your representative's local office number and ask for a 15-minute constituent meeting."});
+L("memo",2,1,-1,"Write one memo\nand publish it",["policy"],{icon:"pencil",kind:"Action",tag:"Two weekends",url:"https://fas.org/day-one-project/",link:"See Day One memos",
+  text:"A short policy memo on a real question is worth more than another credential. For a model, look at the Federation of American Scientists' Day One Project, which publishes concise, actionable memos from outside contributors.",do:"Write two pages on one specific question and post it where people can find it."});
+L("field",2,1,0,"Bring AI into\nyour field",["policy"],{icon:"book",kind:"Action",tag:"For academics",
+  text:"If you already research law, economics, political science or philosophy, you don't have to leave your field. Bring the AI question into it. Then take one concrete first step: apply for a small grant, join a workshop, or co-author a paper with someone already working on it.",do:"Find one person in your discipline who works on AI and suggest a co-authored paper."});
+L("localgroup",2,1,1,"Find a\nlocal group",["outside"],{logo:"aisafety",kind:"Community",tag:"Free",url:"https://www.aisafety.com/communities",link:"Find a group",
+  text:"Acting with other people is easier and works better than acting alone. Look for a local AI safety or advocacy group, or an online one if nothing is nearby.",do:"Go to one meeting this month."});
+L("govai",2,2,-1,"GovAI\nfellowships",["policy"],{logo:"govai",kind:"Fellowship",tag:"Funded · 3 months · London or DC",url:"https://www.governance.ai/opportunities",link:"Open GovAI",
+  text:"The Centre for the Governance of AI runs funded three-month fellowships in London and Washington DC, for research careers and for applied policy careers.",do:"Read the latest fellowship call and note the deadline."});
+L("iaps",2,2,0,"IAPS\nFellowship",["policy"],{logo:"iaps",kind:"Fellowship",tag:"$15k to $22k · 3 months",url:"https://www.iaps.ai",link:"Open IAPS",
+  text:"The Institute for AI Policy and Strategy runs a fully funded three-month fellowship for professionals from many backgrounds who want practical policy skills. A Spring 2027 round has been advertised.",do:"Read last year's fellow projects to see the level expected."});
+L("talos",2,2,1,"Talos\nFellowship",["policy"],{logo:"talos",kind:"Fellowship",tag:"EU route · paid placement",url:"https://www.talosnetwork.org/talos-fellowship",link:"Open Talos",
+  text:"The route into European AI policy: an online course on EU policy, a summit in Brussels and an optional paid placement. US citizenship is not needed.",do:"Check the next cohort's dates."});
+L("euai",2,3,-1,"EU AI Office",["policy"],{logo:"eu",kind:"Employer",tag:"Brussels",url:"https://digital-strategy.ec.europa.eu/en/policies/ai-office",link:"Open the AI Office",
+  text:"The body that implements the EU AI Act. Governments are building real institutions for AI, and they need staff who understand the technology.",do:"Read what the Office is responsible for and what kinds of staff it hires."});
+L("encode",2,3,0,"Encode",["policy","outside"],{logo:"encode",kind:"Advocacy group",tag:"Volunteer or staff",url:"https://encodeai.org",link:"Open Encode",
+  text:"A youth-led group that started with students organising against a California ballot measure and grew into an organisation that has helped push state AI safety laws such as California's SB 53. You can volunteer, start a chapter or work there.",do:"Read Encode's current campaigns and sign up for one."});
+L("ari",2,3,1,"Americans for Resp.\nInnovation (ARI)",["policy","outside"],{logo:"ari",kind:"Advocacy group",tag:"Guides + staff roles",url:"https://ari.us",link:"Open ARI",
+  text:"A policy advocacy organisation with guides for citizens who want to act, and staff roles in policy and communications.",do:"Read their guide to contacting lawmakers."});
+L("techcongress",2,4,-.6,"Into Congress:\nTechCongress",["policy"],{logo:"techcongress",kind:"Fellowship",tag:"About $100k · one year",url:"https://techcongress.io",link:"Open TechCongress",
+  text:"The next rung for people with technical or scientific backgrounds. TechCongress places technologists in congressional offices for about a year. The AAAS Science and Technology Policy Fellowship does the same for scientists and engineers, and has an AI cohort. Some states run their own versions, such as California's.",do:"Read one current fellow's profile and check the next application window."});
+L("statebill",2,4,.6,"Help pass a\nstate law",["policy","outside"],{icon:"building",kind:"Action",tag:"Where much AI law is made",
+  text:"A lot of AI law is being written in state capitals. Testify at a hearing, submit written comments, or volunteer with a group working on a bill, the way Encode did with California's SB 53. Policy people bring the drafting; citizens bring the pressure.",do:"Find out whether your state has an AI bill moving and who is backing it."});
+// Row 3: outside work + communications
+L("talk",3,0,0,"Talk about it",["outside","comms"],{icon:"chat",kind:"Action",tag:"Free · today",
+  text:"Most people have never heard a calm, clear explanation of AI risk from someone they trust. Explaining it to one friend is also the cheapest test of whether you'd enjoy doing it for a living.",do:"Explain one thing you learned to one person today, without jargon."});
+L("pauseai",3,1,-1,"PauseAI",["outside"],{logo:"pauseai",kind:"Advocacy group",tag:"Free tools · local groups",url:"https://pauseai.info/action",link:"Open PauseAI's tools",
+  text:"A volunteer movement with free letter and meeting builders that walk you through contacting lawmakers step by step. PauseAI US reports 47 local groups in 29 states and 192 meetings with members of Congress in 2024 and 2025.",do:"Use the meeting builder to draft your request to your representative."});
+L("controlai",3,1,0,"ControlAI",["outside"],{logo:"controlai",kind:"Advocacy group",tag:"Campaign tools",url:"https://controlai.com",link:"Open ControlAI",
+  text:"A campaign group with tools for contacting lawmakers and briefings written for the public.",do:"Send one message through their tool, rewritten in your own words."});
+L("oped",3,1,1,"Write an op-ed\nor letter",["outside","comms"],{icon:"pencil",kind:"Action",tag:"One evening",
+  text:"Local papers print letters from residents, and lawmakers' staff read them. It is advocacy and writing practice at the same time, and a published piece is something you can point to later.",do:"Write 200 words to your local paper about one AI issue that affects your town."});
+L("table",3,2,-1,"Table or\ndemonstrate",["outside"],{icon:"megaphone",kind:"Action",tag:"Microgrants available",url:"https://pauseai.info/microgrants",link:"See PauseAI microgrants",
+  text:"Run a community table or join a peaceful demonstration. PauseAI's microgrants, usually under €2,000, cover things like print materials and banners.",do:"Ask your local group when the next event is and offer to take a shift."});
+L("local",3,2,0,"Show up\nlocally",["outside"],{icon:"building",kind:"Action",tag:"One evening",
+  text:"City councils, school boards and state hearings all make decisions about AI. When an agency asks for public comments, write your own: individual comments count, and copied ones get grouped together.",do:"Find the next public meeting near you with AI on the agenda and go."});
+L("frame",3,2,1,"Frame\nFellowship",["comms"],{logo:"frame",kind:"Fellowship",tag:"10 weeks · San Francisco · costs covered",url:"https://www.framefellowship.com/",link:"Open Frame",
+  text:"A ten-week residential program for content creators covering AI and its effects on society, with housing, a stipend and mentoring from established creators. For people who have already posted and want to get better.",do:"Post two more pieces, then apply with your best one."});
+L("give",3,3,-.6,"Give",["outside"],{logo:"longview",kind:"Funding",tag:"Any amount",url:"https://www.longview.org/fund/emerging-challenges-fund/",link:"Open the fund",
+  text:"If you'd rather fund the work than do it, give through a fund where specialists choose the projects. Longview's Emerging Challenges Fund is open to any donor.",do:"Set up a small monthly donation, even $10."});
+L("indie",3,3,.6,"Go\nindependent",["comms"],{icon:"play",kind:"Action",tag:"Your own channel",
+  text:"Video essays on YouTube, policy analysis on Substack, threads on X, and the most neglected of all, short-form video. A clean 60-second breakdown can reach people who will never read a newspaper.",do:"Pick the platform you already use and commit to four posts in four weeks."});
+L("chapter",3,4,-.6,"Start a chapter\nor lead a group",["outside"],{logo:"pauseai",kind:"Action",tag:"Stipends for organisers",url:"https://pauseai.info/microgrants",link:"See PauseAI funding",
+  text:"When you've shown up a few times, lead. PauseAI offers small stipends for local organisers as well as microgrants for projects, and Encode supports student chapters.",do:"Tell your group's organiser you'd like to run the next event."});
+L("fulltime",3,4,.6,"Build an audience,\ngo full-time",["comms"],{icon:"up",kind:"Action",tag:"One to two years",
+  text:"Creators move to full-time through a fellowship, a staff role or audience support. Your public body of work is your application to everything on this path, so keep it in one place and keep adding to it.",do:"Make one page that links your five best pieces."});
+// Row 4: communications + operations
+L("post60",4,0,-1,"Post a\n60-second video",["comms"],{icon:"play",kind:"Action",tag:"Tonight",
+  text:"If you want to start right now from your bedroom, make and post one sixty-second video. It will be rough, and that is fine. Nobody starts good.",do:"Record one take explaining one idea, and post it."});
+L("study",4,0,0,"Study what\nworks",["comms"],{logo:"youtube",kind:"Action",tag:"One evening",url:"https://www.aisafety.com/media-channels",link:"See AI safety channels",
+  text:"Watch existing AI safety content that reaches people and take notes on how it opens, how long it runs and what it leaves out. AISafety.com keeps a list of channels, podcasts and newsletters.",do:"Watch three successful videos and write down the first ten seconds of each."});
+L("scout",4,0,1,"Scout 3 jobs,\nbook 1 chat",["ops"],{icon:"search",kind:"Action",tag:"This week",url:"https://jobs.80000hours.org",link:"Open the job board",
+  text:"If you've ever been the person who keeps a project from falling apart, you already have the skill. Pick three organisations from the job board and read what they are hiring for.",do:"Then message one person who has that job and ask for a coffee chat."});
+L("commslearn",4,1,-1,"Learn safety\ncomms",["comms"],{logo:"cais",kind:"Guide",tag:"Free · one evening",url:"https://safe.ai/act/talk",link:"Read the guide",
+  text:"Explaining AI risk well is a skill with its own research. The Center for AI Safety's guide to talking about AI safety gives six strategies, such as starting from common ground and dropping the jargon. BlueDot has published a list of communications work it wants to see. Message testing suggests concrete harms land better with general audiences than talk of extinction.",do:"Read the guide, then rewrite your last post using two of its strategies."});
+L("volunteer",4,1,0,"Volunteer\nyour skills",["comms","ops"],{icon:"heart",kind:"Action",tag:"A few hours a week",
+  text:"Design, writing, video editing, event logistics, bookkeeping, translation: small organisations need all of it, and volunteering is how you get known before a role opens.",do:"Email one organisation on this map with a specific offer: I can do X for you by Friday."});
+L("translatepaper",4,1,1,"Explain one\nreport",["comms"],{icon:"pencil",kind:"Action",tag:"One weekend",
+  text:"Researchers publish dense reports that almost nobody outside the field reads. Take one AI safety test result or policy report and explain it in plain language. This is the core skill of the whole path.",do:"Pick one report from an organisation on this map and write 300 words a friend would understand."});
+L("tarbell",4,2,-1,"Tarbell\nFellowship",["comms"],{logo:"tarbell",kind:"Fellowship",tag:"$75k to $120k · applications due 22 Nov 2026",url:"https://www.tarbellcenter.org/fellowship",link:"Apply to Tarbell",open:1,
+  text:"A one-year fellowship that places journalists in major newsrooms for nine months to report on advanced AI. Past placements include Bloomberg, The Guardian, TIME, MIT Technology Review and NPR. Applications for 2027 are open now.",do:"Start the application this week. The deadline is 22 November 2026."});
+L("dispatch",4,2,1,"DISPATCH\nFellowship",["comms"],{icon:"play",kind:"Fellowship",tag:"Remote · 6 weeks · 15 hours a week",url:"https://aiscommsfellowship.vercel.app/",link:"Open DISPATCH",
+  text:"A remote fellowship for short-form AI safety video, open to applicants anywhere. Over six weeks you ship three or four videos a week, with workshops and weekly feedback from AI safety and social media professionals, and help finding a communications role at the end. It expects roughly a BlueDot course's worth of AI safety knowledge. Applications for the first cohort closed on 10 October.",do:"Check the site for the next cohort, and post three short videos now so you have something to show."});
+L("epoch",4,3,-1,"Epoch AI",["comms"],{logo:"epoch",kind:"Employer",tag:"In-house media",url:"https://epoch.ai",link:"Open Epoch AI",
+  text:"A research organisation that has hired writers, editors and social video producers to turn dense forecasting work into things everyday people want to watch. Getting hired means you don't have to play algorithm roulette alone.",do:"Look at how Epoch presents one finding, and remake it in your own style."});
+L("newsrooms",4,3,0,"Newsrooms",["comms"],{icon:"doc",kind:"Employer",tag:"Staff or freelance",
+  text:"Major outlets now have reporters covering AI full-time. The Tarbell Fellowship is the main funded way in, but pitching freelance stories works too.",do:"Pitch one AI story to an editor you already know, or to your local paper."});
+L("orgcomms",4,3,1,"Safety org\ncomms teams",["comms","ops"],{logo:"saferai",kind:"Employer",tag:"Full-time",url:"https://www.safer-ai.org",link:"Open SaferAI",
+  text:"Research and policy organisations hire communications staff with experience from outside the field. SaferAI is one example, and it is where Renn Karageorgieva moved from crisis communications.",do:"Find three communications roles on the job board and compare them with your current job."});
+L("leadership",4,4,0,"Join a\nleadership team",["comms","ops"],{icon:"up",kind:"Action",tag:"Two to three years in",
+  text:"Heads of communications, chiefs of staff and operations directors are the roles organisations say they struggle most to fill. The usual route is two or three years of doing the job well in a small organisation, where you get responsibility early.",do:"Ask for one piece of your manager's job, and do it well for three months."});
+// Row 5: operations + founders
+L("gap",5,0,-.6,"Read: the\ntalent gap",["ops","founders"],{logo:"lesswrong",kind:"Reading",tag:"Free · 15 minutes",url:"https://www.lesswrong.com/posts/QCrT2DTJNfvuqtppB/ai-safety-s-biggest-talent-gap-isn-t-researchers-it-s",link:"Read the post",
+  text:"Kairos and Constellation's case that the biggest shortage in AI safety is not researchers but people who can run projects, manage teams and start organisations.",do:"Read it and note which of the hard-to-fill roles sounds like you."});
+L("opsguides",5,0,.6,"Operations\ncareer guides",["ops"],{logo:"probablygood",kind:"Guide",tag:"Free",url:"https://probablygood.org/career-profiles/operations/",link:"Read the profile",
+  text:"Probably Good's operations career profile and Impact Ops' resources page explain what operations people actually do in mission-driven organisations, which skills matter and how people get in.",do:"Read the profile and list which of the skills you already have evidence for."});
+L("organize",5,1,-.6,"Organise a group\nor event",["ops","founders"],{icon:"people",kind:"Action",tag:"Funding available",url:"https://bluedot.org/grants/rapid",link:"Open BlueDot Rapid Grants",
+  text:"No operations experience yet? Run something. Organise an AI safety group or a one-off event in your community. BlueDot's Rapid Grants cover events, meetups and chapters, usually up to $10k with a decision in about five working days. It is the same muscle as running a team or starting an organisation.",do:"Pick a date four weeks out, book a room and invite ten people."});
+L("toolkit",5,1,.6,"Founder\ntoolkit",["founders"],{logo:"aisafety",kind:"Guide",tag:"Free",url:"https://www.aisafety.com/founders",link:"Open the toolkit",
+  text:"AISafety.com's toolkit for people starting AI safety projects: funders, incubators, fiscal sponsors and advice, collected in one place.",do:"Skim it and bookmark the three pages you'll need first."});
+L("generator",5,2,-.6,"Generator\nResidency",["ops","founders"],{logo:"generator",kind:"Residency",tag:"Funded · 3 months · Berkeley",url:"https://generatorresidency.org/",link:"Open Generator",
+  text:"A three-month residency from Kairos and Constellation for generalists. You pitch a project, run it with funding and mentoring, and get help landing a full-time role or spinning it into a new organisation. The first round ran in summer 2026.",do:"Join the list for the next round and draft a one-paragraph project pitch."});
+L("bdincubator",5,2,.6,"BlueDot\nIncubator Week",["founders"],{logo:"bluedot",kind:"Incubator",tag:"Fully funded · 5 days · San Francisco",url:"https://bluedot.org/programs/incubator-week",link:"Open Incubator Week",
+  text:"Five intensive days in San Francisco for technically serious people from AI safety, biosecurity, cybersecurity and nearby fields who are ready to start an organisation. You work through threat models, design an intervention and pitch it to BlueDot. Strong pitches can get up to $200k through BlueDot's Seed Grants. It runs in repeated cohorts, and past participants have raised more than $10M between them.",do:"Write one paragraph on the risk you'd build against, then check the next cohort's dates."});
+L("chief",5,3,-1,"Ops lead,\nchief of staff",["ops"],{logo:"cais",kind:"Role",tag:"Up to six figures",url:"https://jobs.80000hours.org",link:"See open roles",
+  text:"The roles organisations say are hardest to fill: head of operations, chief of staff, people lead. The Center for AI Safety listed a Chief of Staff at $220k to $345k.",do:"Filter the job board for operations and read the five newest listings."});
+L("kairos",5,3,0,"Kairos and\nfield-builders",["ops"],{logo:"kairos",kind:"Employer",tag:"Full-time",url:"https://kairos-project.org",link:"Open Kairos",
+  text:"Organisations such as Kairos, BlueDot and MATS exist to bring new people into the field, and they hire program managers, recruiters and operations staff.",do:"Read the careers page of one field-building organisation."});
+L("grant",5,3,1,"Grantmaking",["ops"],{logo:"coefficient",kind:"Employer",tag:"Full-time",url:"https://coefficientgiving.org",link:"Open Coefficient Giving",
+  text:"Funders such as Coefficient Giving and Longview need people who can find good projects and judge them. Generalists with good judgement move into these roles.",do:"Read one funder's list of what they want to fund."});
+L("spinout",5,4,0,"Start what's\nmissing",["ops","founders"],{icon:"star",kind:"Action",tag:"When you see the gap",
+  text:"Operators see the gaps first, because they are the ones working around them. Generator residents can spin projects out into new organisations, and funders say they have more money than founders. Many founders in this field were running someone else's program two years earlier.",do:"Write down the one thing your organisation, or the field, keeps doing badly because nobody owns it."});
+// Row 6: founders
+L("halcyon",6,0,-.6,"Halcyon: Request\nfor Founders",["founders"],{logo:"halcyon",kind:"Funder",tag:"Free to read",url:"https://halcyonfutures.org/founders",link:"Read the request",
+  text:"Halcyon Futures finds people from business, policy and academia and helps them launch AI safety organisations. Their request for founders lists what they want built.",do:"Read the list and mark any idea you could start within six months."});
+L("ideas",6,0,.6,"Browse\nidea lists",["founders"],{icon:"search",kind:"Action",tag:"One evening",
+  text:"Funders publish lists of organisations they wish existed, from new testing groups to field-building and safety tools. The hard part is finding founders, not ideas.",do:"Collect three ideas you find exciting and write one line on why you could do each."});
+L("ten",6,1,-.6,"Talk to 10 people\nwith the problem",["founders"],{icon:"chat",kind:"Action",tag:"Two weeks",
+  text:"Before you build anything, check the problem is real. Talk to ten people who would use or fund what you want to make.",do:"Book the first two conversations this week."});
+L("pitch",6,1,.6,"Write a\none-page pitch",["founders"],{icon:"pencil",kind:"Action",tag:"One evening",
+  text:"One page: the problem, why it matters for AI safety, what you would do in the first three months and what it costs. Every incubator on this path asks for some version of it.",do:"Write the page and send it to one person who will be blunt."});
+L("catalyze",6,2,-1,"Catalyze\nImpact",["founders"],{logo:"catalyze",kind:"Incubator",tag:"For new safety organisations",url:"https://catalyze-impact.org",link:"Open Catalyze",
+  text:"An incubator made specifically for new AI safety organisations. Its pilot program incubated 11 organisations, and it now runs several programs a year.",do:"Check the next program and its application date."});
+L("seldon",6,2,0,"Seldon Lab",["founders"],{logo:"seldon",kind:"Accelerator",tag:"Up to $500k per startup",url:"https://seldonlab.com",link:"Open Seldon",
+  text:"A San Francisco accelerator for AI safety and security startups. Companies from its first batch went on to raise further funding and sign contracts with AI companies.",do:"Read about the first batch to see what a fundable idea looks like."});
+L("incubator",6,2,1,"Constellation\nIncubator",["founders"],{logo:"constellation",kind:"Incubator",tag:"4 months of funding",url:"https://constellation.org/programs/incubator",link:"Open the incubator",
+  text:"Four months of funding, operations support and access to Constellation's network for founders at the earliest stage.",do:"Read what they look for in founders."});
+L("seed",6,3,-1,"Find\nfunding",["founders"],{logo:"aisafety",kind:"Funding",tag:"Grants and investment · about 20 funders open",url:"https://www.aisafety.com/funding",link:"See every open funder",
+  text:"Funders say they have more money than founders. AISafety.com keeps a list of every AI safety funder and whether it is open right now, from small grants of a few thousand dollars to Coefficient Giving's Project Tailwind, which offers $200k to $2M to get a new organisation started. Halcyon Futures, BlueDot's Seed Grants and the Transformative AI Fund also back new projects.",do:"Shortlist three open funders whose past grants look like your idea, and read what each asks for."});
+L("ashgro",6,3,0,"Fiscal sponsor:\nAshgro",["founders"],{logo:"ashgro",kind:"Service",tag:"5 to 10% fee",url:"https://www.ashgro.org",link:"Open Ashgro",
+  text:"You don't need to set up a legal charity before you start. Ashgro sponsors AI safety projects so they can receive grants and donations straight away, for a fee of 5 to 10%.",do:"Read the FAQ and check whether your project would qualify."});
+L("launch",6,3,1,"Launch your\norganisation",["founders"],{icon:"star",kind:"Action",tag:"The goal",
+  text:"New testing groups, field-building programs, security companies and safety tools have all been started in the last few years by people who were new to the field not long before.",do:"Set a date for your first public output and tell someone."});
+L("hire",6,4,-.6,"Hire your\nfirst team",["founders"],{icon:"people",kind:"Action",tag:"After funding",url:"https://jobs.80000hours.org",link:"Open the job board",
+  text:"List your roles where people in the field look: the 80,000 Hours job board and AISafety.com. Your first operations hire matters more than you expect, which is why the Operations path sits next to this one.",do:"Write the job description for the one hire that would free up most of your time."});
+L("helpnext",6,4,.6,"Help the\nnext founder",["founders"],{icon:"heart",kind:"Action",tag:"An hour a month",
+  text:"Founders who have raised money and hired a team are the people new founders most need to talk to. Being findable and generous is how this path stays open for the next person.",do:"Tell one incubator on this path that you're available as a mentor."});
+
+/* ---------- smaller options: in the panels and list view, not on the map ---------- */
+X("ml4good",["technical:0","policy:0"],"ML4Good\nbootcamp",{icon:"cap",kind:"Bootcamp",tag:"Free · 8 days · in person",url:"https://www.ml4good.org",link:"Open ML4Good",
+  text:"Free eight-day bootcamps, run in person several times a year in Europe and beyond. There is a technical track and a governance and strategy track for people heading into policy, operations or media. Alumni have gone on to the UK AI Security Institute, the European Commission and MATS.",do:"Check where the next bootcamps are and which track fits you."});
+X("aisc",["technical:1","policy:1"],"AI Safety\nCamp",{icon:"people",kind:"Program",tag:"Part-time · online · 3 months",url:"https://www.aisafety.camp",link:"Open AI Safety Camp",
+  text:"Small online teams of three to five spend January to April on one concrete project, led by the person who proposed it. Projects cover technical research, governance and advocacy. For the 2027 camp, projects are posted around 25 October and applications to join a team close on 17 November 2026.",do:"Read the project list and apply to the two that fit you best."});
+X("fig",["technical:1","policy:1"],"Future Impact\nGroup fellowship",{icon:"people",kind:"Fellowship",tag:"Part-time · remote · 12 weeks",url:"https://futureimpact.group",link:"Open FIG",
+  text:"A part-time, remote-first fellowship where you work as a research associate on a project in AI governance or technical AI safety, about eight hours a week, supervised by an experienced lead.",do:"Read the current projects and note which ones you could help with."});
+X("rapid",["funding","technical:1","comms:1","outside:3","ops:1"],"BlueDot\nRapid Grants",{logo:"bluedot",kind:"Funding",tag:"Up to $20k · about 5 working days",url:"https://bluedot.org/grants/rapid",link:"Open Rapid Grants",
+  text:"Small grants for concrete work where money is the bottleneck: compute and API credits, events and meetups, research access, travel, community chapters and project tools. Most are up to $10k, and decisions take about five working days.",do:"Write down the one thing $2,000 would let you do next month, and apply for it."});
+X("pivotal",["technical:2","policy:2"],"Pivotal Research\nFellowship",{icon:"flask",kind:"Fellowship",tag:"£6k to £8k · 9 weeks · London",url:"https://www.pivotal-research.org",link:"Open Pivotal",
+  text:"A nine-week in-person research fellowship in London covering technical safety, governance, evaluations and AI control, with mentors from the UK AI Security Institute, Google DeepMind, GovAI and others. The 2026 round paid £6,000 to £8,000 plus travel, meals and help with housing. Anyone 18 or over can apply.",do:"Check when the next round opens. The 2026 deadline was in May."});
+X("arcadia",["policy:1"],"AI Governance\nTaskforce",{icon:"briefcase",kind:"Program",tag:"Unpaid · part-time · remote · 12 weeks",url:"https://www.arcadiaimpact.org",link:"Open Arcadia Impact",
+  text:"Arcadia Impact's research program for experienced professionals who want to apply their expertise to AI governance: twelve weeks, about eight hours a week, fully remote, alongside experts in the field. It is unpaid and runs several cohorts a year. The autumn 2026 deadline was 31 August.",do:"Check when the next cohort opens, and write down one governance question your current expertise could answer."});
+X("lawai",["policy:2"],"Law & AI summer\nfellowship",{icon:"doc",kind:"Fellowship",tag:"$1,500 to $2,400 a week · 10 weeks",url:"https://law-ai.org",link:"Open LawAI",
+  text:"The Institute for Law & AI runs a paid ten-week summer fellowship for law students, lawyers and academics, with tracks in US law and policy, EU law and legal frontiers. It is remote-first with one in-person week. Applications for summer 2026 closed on 30 January.",do:"Check when the 2027 call opens and pick the track that matches your legal background."});
+X("successifpol",["policy:2"],"AI Policy Strategy\nFellowship",{logo:"successif",kind:"Fellowship",tag:"Free · 17 weeks",url:"https://www.successif.org",link:"Open Successif",
+  text:"Successif's free program for people already working in AI safety or policy who want to turn research into policy change. It includes practical training, a cohort, mentors and a capstone project that ends in a publishable op-ed.",do:"Check the next cohort's dates."});
+X("aisap",["outside:2","comms:1"],"Run an AI safety\nworkshop",{icon:"people",kind:"Volunteer",tag:"Training and slides provided",url:"https://forum.effectivealtruism.org/posts/hRxYwNg5SiASym4ym/volunteer-opportunities-with-the-ai-safety-awareness",link:"Read how to volunteer",
+  text:"The AI Safety Awareness Project runs in-person workshops for ordinary audiences across the US, such as librarians, community groups and religious organisations. Volunteers can attend, facilitate discussions using the slides and training provided, or adapt the material for their own community. No AI background needed.",do:"Attend one workshop, then offer to facilitate the next."});
+X("projects",["outside:3","ops:1"],"Volunteer on a\nfield project",{logo:"aisafety",kind:"Volunteer",tag:"Flexible · remote",url:"https://www.aisafety.com/projects",link:"See volunteer projects",
+  text:"Much of the field's shared infrastructure, such as directories, websites, research tools and events, is built by volunteers. AISafety.com lists projects that need help, and paid roles alongside them.",do:"Pick one project and offer two hours this week."});
+X("inkhaven",["comms:1"],"Inkhaven writing\nresidency",{icon:"pencil",kind:"Residency",tag:"One month · publish every day",url:"https://www.inkhaven.blog",link:"Open Inkhaven",
+  text:"A month-long residency run by Lightcone, the team behind LessWrong, where writers live together and publish a post every day. Inkhaven 3 runs from 10 November to 11 December 2026, with office hours from Scott Alexander.",do:"Publish one post a day for a week at home to see whether the pace suits you."});
+X("fli",["comms:2"],"FLI Digital Media\nAccelerator",{icon:"play",kind:"Funding",tag:"Rolling · worldwide",url:"https://futureoflife.org/project/digital-media-accelerator/",link:"Open the accelerator",
+  text:"The Future of Life Institute funds creators who explain AI and its risks: YouTube explainers, daily AI news on TikTok, newsletters that unpack research papers, podcasts. It backs people who already have an audience and people with a strong idea. Applications are rolling and open worldwide.",do:"Write a one-paragraph pitch for a series you could keep up for three months."});
+X("ef",["founders:2"],"Entrepreneur First:\ndef/acc",{logo:"ef",kind:"Incubator",tag:"London · startup program",url:"https://www.joinef.com/posts/introducing-def-acc-at-ef/",link:"Read about def/acc",
+  text:"Entrepreneur First runs a program in London for founders building defensive technology, including AI safety and security startups. You can join before you have a team or an idea.",do:"Read what they fund and check the next intake."});
+X("tailwind",["seed","founders:3"],"Project\nTailwind",{logo:"coefficient",kind:"Funding",tag:"$200k to $2M pre-seed · rolling",url:"https://coefficientgiving.org/tailwind",link:"Open Project Tailwind",
+  text:"Coefficient Giving's $200 million open call for founders of AI safety organisations that don't exist yet. It offers $200k to $2M at pre-seed and $2M to $20M or more at seed, and publishes dozens of ideas it wants built, such as detecting rogue AI incidents and technology for verifying international agreements.",do:"Read the idea list and mark the one you'd most want to run."});
+X("taif",["seed"],"Transformative\nAI Fund",{icon:"briefcase",kind:"Funding",tag:"$10k to $150k · rolling",url:"https://funds.effectivealtruism.org/funds/transformative-ai",link:"Open the fund",
+  text:"A rolling fund for new projects working on transformative AI, with grants from $10k to $150k. A good fit for a first project before you need seed-scale money.",do:"Read recent grants to see how big and how specific a typical project is."});
+X("manifund",["seed"],"Manifund",{logo:"manifund",kind:"Funding",tag:"Public · fast",url:"https://manifund.org",link:"Open Manifund",
+  text:"An open platform where projects post what they need and regrantors fund them in public. Grants can move in days, and reading funded projects shows you what a fundable pitch looks like.",do:"Read three funded projects close to your idea."});
+X("fundlist",["funding"],"Every open\nfunder",{logo:"aisafety",kind:"Directory",tag:"Kept up to date",url:"https://www.aisafety.com/funding",link:"See the funding list",
+  text:"AISafety.com lists every AI safety funder and whether it is accepting applications, from small grants for individuals to large funds for new organisations.",do:"Find the funders open to individuals and bookmark two."});
+
+const NODE = Object.fromEntries(NODES.map(n => [n.id, n]));
+const PEOPLE = [
+ { id:"dipika", name:"Dipika Khullar", at:"anthfellows", lane:"technical", role:"AI safety research fellow at Anthropic",
+   story:"Dipika took machine learning courses as part of her undergraduate degree and joined a research project in a lab at her school. Then came two research programs, SPAR and then MATS. She is now an AI safety research fellow at Anthropic.", route:["labproject","spar","mats","anthfellows"] },
+ { id:"gillian", name:"Gillian Hadfield", at:"field", lane:"policy", role:"Professor at Johns Hopkins, runs the Normativity Lab",
+   story:"Gillian built her career as an economist and a legal scholar. Today she runs the Normativity Lab, working on international AI safety coordination and AI law. Instead of leaving her field, she brought the AI question into it.", route:["field"] },
+ { id:"sneha", name:"Sneha Revanur", at:"encode", lane:"outside", role:"Founder of Encode",
+   story:"At fifteen, Sneha organised other students against a California ballot measure, Prop 25, that would have replaced cash bail with an AI risk score. Voters rejected it. Her group of about 20 students grew into Encode, which has helped push for state AI safety laws like California's SB 53.", route:["talk","table","encode","statebill"] },
+ { id:"drew", name:"Drew Spartz", at:"indie", lane:"comms", role:"Runs one of the most-watched AI safety channels on YouTube",
+   story:"Drew is the reminder that nobody starts good. His first videos were rough and barely got any views. He kept learning from his mistakes and improving, and now his videos reach millions.", route:["post60","study","indie","fulltime"] },
+ { id:"renn", name:"Renn Karageorgieva", at:"orgcomms", lane:"comms", role:"Communications at SaferAI",
+   story:"Renn came from crisis communications. An adviser at 80,000 Hours helped her meet people at AI safety organisations and learn what employers wanted. One conversation led to an introduction to the chief of staff at SaferAI, who encouraged her to apply for a job she had missed. She got the role within weeks.", route:["mid","advising","reach","orgcomms"] },
+ { id:"bryan", name:"Bryan Sukidi", at:"kairos", lane:"ops", role:"Builds talent directories at Kairos",
+   story:"Bryan took a BlueDot course as a student, joined his campus AI safety club and did a research internship to learn more about machine learning. After university he did the Generator residency, and Kairos then hired him full-time to build talent directories for the field.", route:["bd_agi","campus","generator","kairos"] }
+];
+PEOPLE.forEach(p => p.ini = p.name.split(" ").map(w => w[0]).join(""));
+const PERSON = Object.fromEntries(PEOPLE.map(p => [p.id, p]));
+
+// Click-through order for each path, and for the trunk.
+const TRUNK_SEQ = ["start","stay","podcasts","watch","real","follow","news","buddy","learn","bd_intro","bd_agi","reading","fieldmap","student","campus","pathfinder","major","uni","mid","successif","hip","translate","talk10","advising","jobs","funding","pick"];
+const posFor = (n, l) => n.pos.find(p => p.lanes.includes(l)) || n.pos[0];
+const SEQ = { trunk: TRUNK_SEQ };
+LANES.forEach(l => SEQ[l.id] = NODES.filter(n => n.type !== "extra" && n.lanes.includes(l.id)).sort((a, b) => a.st[l.id] - b.st[l.id] || posFor(a, l.id).y - posFor(b, l.id).y || posFor(a, l.id).x - posFor(b, l.id).x).map(n => n.id));
+const seqName = c => c === "trunk" ? "Getting started" : LANE[c].name;
+const stageNodes = (l, i) => SEQ[l].map(id => NODE[id]).filter(n => n.st[l] === i);
+// Extras listed under a circle (key = its id) or at a stage (key = "lane:stage", including those under a circle at that stage).
+const extrasAt = key => { const [l, s] = key.split(":"); return NODES.filter(n => n.type === "extra" && (s === undefined ? n.at.includes(key) : n.st[l] === +s)); };
+
+/* ---------- draw the chart ---------- */
+const svg = document.getElementById("map"), wrap = document.getElementById("mapwrap");
+const col = l => `var(${LANE[l].color})`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+const flat = n => n.type === "bar" ? n.label[0] + n.label.slice(1).toLowerCase() : n.label.replace(/\n/g, " ");
+const hcurve = (a, b) => { const m = (a.x + b.x) / 2; return `M${a.x} ${a.y}C${m} ${a.y},${m} ${b.y},${b.x} ${b.y}`; };
+const vcurve = (a, b) => { const m = (a.y + b.y) / 2; return `M${a.x} ${a.y}C${a.x} ${m},${b.x} ${m},${b.x} ${b.y}`; };
+const icon = (name, s, stroke) => `<g transform="translate(${-12 * s},${-12 * s}) scale(${s})"><path d="${ICON[name]}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+const lines = (label, y, cls, lh, x = 0) => label.split("\n").map((t, i) => `<text class="${cls}" x="${x}" y="${y + i * lh}">${esc(t)}</text>`).join("");
+const cls = n => n.lanes.length ? n.lanes.map(l => "l-" + l).join(" ") : "l-trunk";
+const tick = r => `<circle r="${r}" fill="var(--ok)" stroke="#fff" stroke-width="2"/><path d="M-6 0l4 4 7-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+function ring(cols, r) {
+  const c = 2 * Math.PI * r, w = c / cols.length;
+  return cols.map((cc, i) => `<circle r="${r}" fill="none" stroke="${cc}" stroke-width="7" stroke-dasharray="${w} ${c}" stroke-dashoffset="${-i * w}" transform="rotate(180)"/>`).join("");
+}
+function nodeSvg(n, p) {
+  const a = `data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(flat(n))}"`;
+  if (n.type === "bar") {
+    const y0 = LANES[0].y - 62, y1 = LANES[5].y + 62;
+    return `<g class="n ${cls(n)}" ${a}><rect class="halo" x="${n.x - 46}" y="${y0 - 10}" width="92" height="${y1 - y0 + 20}" rx="46"/>
+      <rect x="${n.x - 36}" y="${y0}" width="72" height="${y1 - y0}" rx="36" fill="var(--card)" stroke="var(--ink)" stroke-width="6"/>
+      ${LANES.map(l => `<circle cx="${n.x}" cy="${l.y}" r="15" fill="var(${l.color})" stroke="var(--card)" stroke-width="4"/>`).join("")}
+      ${n.seg.map((t, i) => `<text class="bartxt" transform="translate(${n.x - 11},${(LANES[i].y + LANES[i + 1].y) / 2}) rotate(90)">${esc(t)}</text>`).join("")}
+      <g class="badge" transform="translate(${n.x},${y0 - 6})">${tick(15)}</g></g>`;
+  }
+  const t = `transform="translate(${p.x},${p.y})"`;
+  if (n.type === "hub") return `<g class="n ${cls(n)}" ${a} ${t}>${n.id === "start" ? `<circle class="pulse" r="60"/>` : ""}<circle class="halo" r="58"/>
+    <circle r="46" fill="var(--ink)"/>${icon(n.icon, 1.9, "var(--paper)")}<g transform="translate(${n.id === "pick" ? -70 : 0},0)">${lines(n.label, 88, "hublbl", 30)}</g></g>`;
+  const cols = n.lanes.length ? n.lanes.map(col) : ["var(--ink)"], solo = cols.length === 1 ? cols[0] : "var(--ink)";
+  const img = n.logo && LG[n.logo];
+  const face = n.logo
+    ? `<circle r="30" fill="#fff"/>${img ? `<image href="${img}" x="-27" y="-27" width="54" height="54" style="clip-path:circle(50%)"/>` : `<text class="lbl" y="8" style="fill:#222">${esc(n.label[0])}</text>`}`
+    : `<circle r="30" fill="${solo}"/>${icon(n.icon, 1.45, solo === "var(--ink)" ? "var(--paper)" : "#fff")}`;
+  const nl = n.label.split("\n").length;
+  return `<g class="n ${cls(n)}" ${a} ${t}><circle class="halo" r="43"/>${face}${ring(cols, 31)}
+    ${n.star || n.open ? `<g transform="translate(27,-27)"><circle r="14" fill="var(--hi)" stroke="#111" stroke-width="2"/>${icon(n.star ? "star" : "flag", .8, "#111")}</g>` : ""}
+    <g class="badge" transform="translate(-27,-27)">${tick(13)}</g>
+    ${n.lp === "r" ? lines(n.label, nl > 1 ? -4 : 8, "lbl r", 24, 46) : lines(n.label, 60, "lbl", 24)}</g>`;
+}
+function draw() {
+  let e = "", top = "";
+  const P = id => NODE[id].pos[0];
+  // trunk
+  e += `<path class="trunk l-trunk e" stroke-width="16" d="M${["start", "stay", "learn", "pick"].map(i => P(i).x + " " + P(i).y).join("L")}"/>`;
+  ["student", "mid"].forEach(i => e += `<path class="trunk l-trunk e" stroke-width="10" d="${hcurve(P("learn"), P(i))}"/><path class="trunk l-trunk e" stroke-width="10" d="${hcurve(P(i), P("pick"))}"/>`);
+  e += `<path class="trunk l-trunk e" stroke-width="7" d="M${P("student").x} ${P("student").y}V${P("mid").y}"/>`;
+  NODES.filter(n => n.type === "sat" && n.lp !== "r").forEach(n => n.parent.forEach(h => e += `<path class="trunk l-trunk e" stroke-width="5" d="${vcurve(P(h), n.pos[0])}"/>`));
+  // paths
+  LANES.forEach(l => {
+    const c = `var(${l.color})`;
+    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="${hcurve(P("pick"), { x: PILLX - 112, y: l.y })}"/>`;
+    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="M${PILLX} ${l.y}H${BAR2}"/>`;
+    top += `<g class="lane l-${l.id}" data-lane="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)} path" transform="translate(${PILLX},${l.y})"><rect x="-112" y="-33" width="224" height="66" rx="33" fill="${c}"/><text class="lanetxt" y="10">${esc(l.name.toUpperCase())}</text></g>`;
+    l.stages.forEach((s, i) => top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${esc(l.name)} stage ${i + 1}: ${esc(s)}">
+      <circle cx="${SX[i]}" cy="${l.y}" r="12" fill="var(--paper)" stroke="${c}" stroke-width="6"/>
+      <text class="stg" x="${SX[i] - 112}" y="${l.y + 6}" fill="color-mix(in srgb,${c} 78%,var(--ink))">${i + 1} · ${esc(s.toUpperCase())}</text></g>`);
+    // Past the last stage, every other path points on to founding something.
+    if (l.id !== "founders") top += `<g class="tofound l-${l.id}" data-found="${l.id}" tabindex="0" role="button" aria-label="From ${esc(l.name)} to founding an organisation" transform="translate(${(SX[4] + BAR2) / 2 + 4},${l.y})">
+      <rect x="-66" y="-17" width="132" height="34" rx="17" fill="var(--paper)" stroke="var(--f)" stroke-width="4"/>
+      <text class="stg" y="6" fill="color-mix(in srgb,var(--f) 78%,var(--ink))">→ FOUNDERS</text></g>`;
+  });
+  NODES.filter(n => n.type === "leaf").forEach(n => n.pos.forEach(p => p.lanes.forEach(l => e += `<path class="e l-${l}" stroke="${col(l)}" stroke-width="5" d="${vcurve(p, { x: SX[p.stage], y: LANE[l].y })}"/>`)));
+  const pins = PEOPLE.map(p => { const q = posFor(NODE[p.at], p.lane); return `<g class="pin l-${p.lane}" data-person="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}'s route" transform="translate(${q.x + 40},${q.y - 40})">
+    <circle r="21" fill="var(--ink)" stroke="${col(p.lane)}" stroke-width="5"/><text class="pname" y="6" text-anchor="middle" style="fill:var(--paper)">${p.ini}</text>
+    <text class="pname" y="-30" text-anchor="middle">${esc(p.name.split(" ")[0])}</text></g>`; }).join("");
+  const legend = `<g transform="translate(70,1668)">
+    <text class="hublbl" style="text-anchor:start" y="0">HOW TO READ THIS MAP</text>
+    <g transform="translate(22,44)"><circle r="17" fill="#fff"/>${ring(["var(--t)"], 18)}<text class="leg" x="36" y="7">Logo circle: a course, program or employer</text></g>
+    <g transform="translate(22,90)"><circle r="17" fill="var(--o)"/>${icon("pencil", .9, "#fff")}<text class="leg" x="36" y="7">Solid circle: something you do yourself</text></g>
+    <g transform="translate(520,44)"><circle r="17" fill="#fff"/>${ring(["var(--t)", "var(--p)", "var(--c)"], 18)}<text class="leg" x="36" y="7">Several colours: counts on several paths</text></g>
+    <g transform="translate(520,90)"><circle r="15" fill="var(--ink)" stroke="var(--c)" stroke-width="5"/><text class="leg" x="36" y="7">Initials: a real person who took this route</text></g>
+    <text class="leg" x="0" y="138">Scroll to move · pinch or Ctrl + scroll to zoom · programs and deadlines checked October 2026</text></g>`;
+  const nodes = NODES.map(n => n.type === "bar" ? nodeSvg(n) : n.pos.map(p => nodeSvg(n, p)).join("")).join("");
+  svg.innerHTML = `<g id="edges">${e}</g>
+    <text class="title" x="70" y="130">WORRIED ABOUT AI? HERE’S WHAT YOU CAN DO.</text>
+    <text class="tsub" x="72" y="178">Start on the left. Six paths on the right. Click any circle, then press Next to walk the path.</text>
+    ${legend}<g id="top">${top}</g><g id="nodes">${nodes}</g><g id="pins">${pins}</g>`;
+  backings();
+}
+// Paper-coloured plates behind labels so lines never run through text.
+function backings() {
+  svg.querySelectorAll(".bk").forEach(r => r.remove());
+  svg.querySelectorAll("#nodes text.lbl, #nodes text.hublbl, #top text.stg, #pins text.pname:last-child").forEach(t => {
+    let b; try { b = t.getBBox(); } catch (_) { return; } if (!b.width) return;
+    const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    r.setAttribute("class", "bk"); r.setAttribute("x", b.x - 5); r.setAttribute("y", b.y - 1); r.setAttribute("width", b.width + 10); r.setAttribute("height", b.height + 2); r.setAttribute("rx", 5);
+    t.parentNode.insertBefore(r, t);
+  });
+}
+
+/* ---------- view: the viewBox always matches the frame's shape, so pan and zoom are exact ---------- */
+const panel = document.getElementById("panel"), listwrap = document.getElementById("listwrap"), chips = document.getElementById("chips"), planbtn = document.getElementById("planbtn");
+const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+const REG = { all: { x: -30, y: -20, w: W + 60, h: H + 40 }, trunk: { x: 40, y: 250, w: 1330, h: 1370 } };
+LANES.forEach(l => REG[l.id] = { x: 1290, y: clampN(l.y - 335, 0, H - 670), w: W - 1270, h: 670 });
+let vb = { x: 0, y: 0, w: W, h: H }, anim = 0, focus = "all";
+const size = () => ({ cw: wrap.clientWidth || 1200, ch: wrap.clientHeight || 700 });
+const padR = () => (!panel.hidden && innerWidth > 820) ? Math.min(panel.offsetWidth, size().cw * .6) : 0;
+const padB = () => (!panel.hidden && innerWidth <= 820) ? Math.min(panel.offsetHeight, size().ch * .6) : 0;
+const scale = () => size().cw / vb.w;                   // screen pixels per chart unit
+function viewFor(r) { const { cw, ch } = size(), aw = cw - padR(), ah = ch - padB(), s = Math.min(aw / r.w, ah / r.h);
+  return { x: r.x - (aw / s - r.w) / 2, y: r.y - (ah / s - r.h) / 2, w: cw / s, h: ch / s }; }
+// Keep the map in place: if it fits along an axis it sits centred (beside the panel), otherwise its edges stop at the frame's edges.
+function clampVB(v) { const s = size().cw / v.w, A = REG.all;
+  const fit = (p, lo, len, view) => view >= len ? lo - (view - len) / 2 : clampN(p, lo, lo + len - view);
+  return { ...v, x: fit(v.x, A.x, A.w, v.w - padR() / s), y: fit(v.y, A.y, A.h, v.h - padB() / s) }; }
+const setVB = v => { vb = v; svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`); };
+function flyTo(t) {
+  cancelAnimationFrame(anim); t = clampVB(t);
+  if (matchMedia("(prefers-reduced-motion:reduce)").matches) return setVB({ ...t });
+  const s = { ...vb }, t0 = performance.now();
+  const stepFn = now => { const q0 = Math.min(1, (now - t0) / 420), q = q0 * q0 * (3 - 2 * q0);
+    setVB({ x: s.x + (t.x - s.x) * q, y: s.y + (t.y - s.y) * q, w: s.w + (t.w - s.w) * q, h: s.h + (t.h - s.h) * q }); if (q0 < 1) anim = requestAnimationFrame(stepFn); };
+  anim = requestAnimationFrame(stepFn);
+}
+function toChart(cx, cy) { const b = wrap.getBoundingClientRect(), s = scale(); return { x: vb.x + (cx - b.left) / s, y: vb.y + (cy - b.top) / s }; }
+function zoomAt(cx, cy, f, fly) {
+  const { cw, ch } = size(), nw = clampN(vb.w * f, 520, viewFor(REG.all).w), r = nw / vb.w, p = toChart(cx, cy);
+  const v = clampVB({ x: p.x - (p.x - vb.x) * r, y: p.y - (p.y - vb.y) * r, w: nw, h: nw * ch / cw });
+  fly ? flyTo(v) : setVB(v);
+}
+const centre = () => { const b = wrap.getBoundingClientRect(); return [b.left + (b.width - padR()) / 2, b.top + (b.height - padB()) / 2]; };
+// Bring a chart point into the part of the frame the panel doesn't cover.
+function reveal(x, y) {
+  const s = scale(), { cw, ch } = size(), aw = cw - padR(), ah = ch - padB(), sx = (x - vb.x) * s, sy = (y - vb.y) * s;
+  const okX = sx > 70 && sx < aw - 70, okY = sy > 70 && sy < ah - 90;
+  if (okX && okY) return;
+  flyTo(clampVB({ ...vb, x: okX ? vb.x : x - aw / 2 / s, y: okY ? vb.y : y - ah / 2 / s }));
+}
+// Scroll moves the chart like a page; pinch or Ctrl+scroll zooms; drag also moves.
+wrap.addEventListener("wheel", e => { e.preventDefault(); cancelAnimationFrame(anim);
+  if (e.ctrlKey || e.metaKey) return zoomAt(e.clientX, e.clientY, Math.exp(clampN(e.deltaY, -30, 30) * .012));
+  let dx = e.deltaX, dy = e.deltaY; if (e.shiftKey && !dx) { dx = dy; dy = 0; } if (e.deltaMode === 1) { dx *= 32; dy *= 32; }
+  setVB(clampVB({ ...vb, x: vb.x + dx / scale(), y: vb.y + dy / scale() })); }, { passive: false });
+wrap.addEventListener("dblclick", e => { if (!e.target.closest("[data-id],[data-lane],[data-person],[data-stage],[data-found],button")) zoomAt(e.clientX, e.clientY, .6, true); });
+const pts = new Map(); let drag = null, dragged = false, pd = 0;
+const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); };
+wrap.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; pts.set(e.pointerId, e); cancelAnimationFrame(anim);
+  if (pts.size === 1) { drag = { x: e.clientX, y: e.clientY, vb: { ...vb }, s: scale() }; dragged = false; } else if (pts.size === 2) { drag = null; pd = dist(); } });
+wrap.addEventListener("pointermove", e => { if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, e);
+  if (pts.size === 2) { const d = dist(), [a, b] = [...pts.values()]; if (pd && d) zoomAt((a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2, pd / d); pd = d; dragged = true; return; }
+  if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (!dragged && Math.hypot(dx, dy) < 6) return; dragged = true; wrap.classList.add("drag");
+  setVB(clampVB({ ...drag.vb, x: drag.vb.x - dx / drag.s, y: drag.vb.y - dy / drag.s })); });
+const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pd = 0; if (!pts.size) { drag = null; wrap.classList.remove("drag"); } };
+wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up); wrap.addEventListener("pointerleave", up);
+// Refit whenever the frame itself changes size (window resize, fonts loading, toolbar wrapping).
+let rz = 0; const refit = () => { clearTimeout(rz); rz = setTimeout(() => { if (view !== "map") return; cancelAnimationFrame(anim); setVB(clampVB(viewFor(REG[focus]))); }, 100); };
+if (window.ResizeObserver) new ResizeObserver(refit).observe(wrap); else addEventListener("resize", refit);
+
+/* ---------- selection, panel, plan ---------- */
+let sel = null, ctx = "trunk", view = "map", plan = {};
+try { plan = JSON.parse(localStorage.getItem("aisafety-map-plan") || "{}") || {}; } catch (_) {}
+const save = () => { try { localStorage.setItem("aisafety-map-plan", JSON.stringify(plan)); } catch (_) {} };
+// The "start here" pulse stops for good once someone opens any circle.
+try { if (localStorage.getItem("aisafety-map-started")) svg.classList.add("started"); } catch (_) {}
+const started = () => { svg.classList.add("started"); try { localStorage.setItem("aisafety-map-started", "1"); } catch (_) {} };
+
+const avatar = (n, sm) => { const kk = n.lanes && n.lanes.length === 1 ? col(n.lanes[0]) : "var(--ink)", img = n.logo && LG[n.logo];
+  return `<span class="av ${sm ? "sm" : ""} ${n.logo ? "" : "act"}" style="--k:${kk}">${img ? `<img src="${img}" alt="">` : `<svg viewBox="0 0 24 24"><path d="${ICON[n.icon || "star"]}" fill="none" stroke="${n.logo ? "#222" : kk === "var(--ink)" ? "var(--paper)" : "#fff"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</span>`; };
+const rowBtn = (n, c) => `<button class="rowbtn" data-go="${n.id}" ${c ? `data-ctx="${c}"` : ""}>${avatar(n, 1)}<span class="t">${esc(flat(n))}<small>${esc(n.tag || n.kind || "")}</small></span>${plan[n.id] ? `<span class="mute">${plan[n.id].done ? "done" : "in plan"}</span>` : ""}</button>`;
+const personBtn = p => `<button class="rowbtn" data-person="${p.id}"><span class="av sm act" style="--k:${col(p.lane)}"><b style="color:#fff;font:700 13px var(--disp)">${p.ini}</b></span><span class="t">${esc(p.name)}<small>${esc(p.role)}</small></span></button>`;
+const moreRows = (key, c) => { const m = extrasAt(key); return m.length ? `<details class="more"><summary>${m.length} more ${m.length === 1 ? "option" : "options"}</summary>${m.map(n => rowBtn(n, c)).join("")}</details>` : ""; };
+const foundBtn = l => `<button class="rowbtn" data-found="${l}"><span class="av sm act" style="--k:var(--f)"><svg viewBox="0 0 24 24"><path d="${ICON.star}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="t">Start an organisation<small>From ${esc(LANE[l].name.toLowerCase())} to founder</small></span></button>`;
+const count = () => Object.keys(plan).filter(i => NODE[i]).length;
+
+function mark() {
+  svg.classList.toggle("focus", focus !== "all");
+  svg.querySelectorAll(".n,.e,.sg,.pin,.lane,.tofound").forEach(el => el.classList.toggle("dim", focus !== "all" && !el.classList.contains("l-" + focus)));
+  svg.querySelectorAll(".n").forEach(el => { el.classList.toggle("sel", el.dataset.id === sel); el.classList.toggle("inplan", !!plan[el.dataset.id]); });
+  chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === focus));
+  planbtn.textContent = `My plan (${count()})`;
+}
+function setFocus(f, fly = true) { focus = f; if (fly) flyTo(viewFor(REG[f])); mark(); if (view === "list") renderList(); }
+function openPanel(html, isPlan) {
+  const was = panel.hidden; panel.hidden = false;
+  panel.innerHTML = `<div class="ptop"><div class="tabs"><button class="tab" data-tab="info" aria-selected="${!isPlan}">Details</button><button class="tab" data-tab="plan" aria-selected="${!!isPlan}">My plan (${count()})</button></div><button class="x" data-close aria-label="Close panel">&times;</button></div>${html}`;
+  panel.scrollTop = 0;
+  if (was && view === "map") flyTo(viewFor(REG[focus]));   // the panel now covers part of the frame, so refit beside it
+}
+function showNode(id, c, follow) {
+  const n = NODE[id]; if (!n) return; sel = id; started();
+  const fits = l => l && (n.type === "extra" ? (l === "trunk" ? n.trunk : n.lanes.includes(l)) : SEQ[l] && SEQ[l].includes(id));
+  ctx = fits(c) ? c : fits(focus) ? focus : n.lanes.length ? (n.lanes.includes(ctx) ? ctx : n.lanes[0]) : "trunk";
+  lastInfo = () => showNode(id, ctx);
+  const seq = SEQ[ctx], i = seq.indexOf(id), kc = ctx === "trunk" ? "var(--ink)" : col(ctx), here = PEOPLE.filter(p => p.route.includes(id)), more = extrasAt(id);
+  const stage = ctx !== "trunk" && n.st[ctx] >= 0 && n.st[ctx] < 9 ? ` · ${LANE[ctx].stages[n.st[ctx]]}` : "";
+  const moving = follow && focus !== ctx;
+  // An extra has no place in the step order, so its Back returns to the circle or stage it was listed under.
+  const back = n.type === "extra" && (n.at.find(a => NODE[a] && (ctx === "trunk" ? !NODE[a].lanes.length : NODE[a].lanes.includes(ctx))) || `${ctx}:${n.st[ctx]}`);
+  const lead = LANE[ctx] && ctx !== "founders" && (n.st[ctx] === 4 || id === "events");
+  openPanel(`<div class="stepper ${ctx === "trunk" ? "ink" : ""}" style="--k:${kc}">${back
+      ? `<button data-back="${back}">&#8249; Back</button><span>${esc(seqName(ctx))}${esc(stage)}<br>more options</span>`
+      : `<button data-step="-1" ${i <= 0 ? "disabled" : ""} aria-label="Previous step">&#8249; Back</button><span>${esc(seqName(ctx))}${esc(stage)}<br>step ${i + 1} of ${seq.length}</span><button data-step="1" ${i >= seq.length - 1 ? "disabled" : ""} aria-label="Next step">Next &#8250;</button>`}</div>
+    <div class="ph">${avatar(n)}<div><p class="kind">${esc(n.kind || "")}${n.tag ? " · " + esc(n.tag) : ""}</p><h2>${esc(flat(n))}</h2></div></div>
+    <p>${esc(n.text)}</p>
+    <div class="do"><b>Do this</b><p>${esc(n.do)}</p></div>
+    <div class="btns">${n.url ? `<a class="btn pri" href="${n.url}" target="_blank" rel="noopener">${esc(n.link || "Open site")} &#8599;</a>` : ""}
+      <button class="btn ${plan[id] ? "on" : ""}" data-plan="${id}">${plan[id] ? "In my plan ✓" : "Add to my plan"}</button></div>
+    ${n.lanes.length > 1 ? `<h3>Counts on ${n.lanes.length === 6 ? "every path" : n.lanes.length + " paths"}</h3><div>${n.lanes.map(l => `<button class="pill" style="--k:${col(l)}" data-go="${id}" data-ctx="${l}" data-follow="1">${esc(LANE[l].name)}${l === ctx ? " ✓" : ""}</button>`).join("")}</div><p class="mute">Pick a path to keep clicking through from here along that line.</p>`
+      : n.lanes.length ? `<h3>On this path</h3><div><button class="pill" style="--k:${col(n.lanes[0])}" data-lanego="${n.lanes[0]}">${esc(LANE[n.lanes[0]].name)}</button></div>` : ""}
+    ${id === "pick" ? `<h3>The six paths</h3><div>${LANES.map(l => `<button class="pill" style="--k:${col(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>` : ""}
+    ${more.length ? `<h3>More like this</h3>${more.map(m => rowBtn(m, ctx)).join("")}` : ""}
+    ${lead ? `<h3>Where this can lead</h3>${foundBtn(ctx)}` : ""}
+    ${here.length ? `<h3>Who went this way</h3>${here.map(personBtn).join("")}` : ""}`);
+  if (moving) setFocus(ctx); else mark();
+  if (view === "map" && !moving && n.pos.length) { const p = ctx === "trunk" ? n.pos[0] : posFor(n, ctx); setTimeout(() => reveal(p.x, n.type === "bar" ? LANE[ctx].y : p.y), 440); }
+}
+function step(d) { if (!sel || NODE[sel].type === "extra") return; const seq = SEQ[ctx], i = seq.indexOf(sel) + d; if (i >= 0 && i < seq.length) showNode(seq[i], ctx, true); }
+function showLane(id) {
+  const l = LANE[id]; sel = null; ctx = id; lastInfo = () => showLane(id);
+  const ppl = PEOPLE.filter(p => p.lane === id);
+  openPanel(`<p class="kind">Path</p><h2 style="color:${col(id)}">${esc(l.name)}</h2>
+    <p class="myth">${esc(l.myth)}</p><p>${esc(l.why)}</p>
+    <div class="btns"><button class="btn pri" data-go="${SEQ[id][0]}" data-ctx="${id}" data-follow="1">Start this path &#8250;</button></div>
+    <h3>First, on every path</h3>${rowBtn(NODE.reach, id)}
+    ${l.stages.map((s, i) => `<button class="h3btn" style="--k:${col(id)}" data-stage="${id}:${i}">${i + 1} · ${esc(s)}</button>${stageNodes(id, i).map(n => rowBtn(n, id)).join("")}${moreRows(id + ":" + i, id)}`).join("")}
+    <h3>Then, on every path</h3>${rowBtn(NODE.events, id)}
+    ${id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(id)}` : ""}
+    <h3>What it pays</h3><p>${esc(l.pay)}</p><h3>Know before you start</h3><p>${esc(l.caveat)}</p>
+    ${ppl.length ? `<h3>Someone who did it</h3>${ppl.map(personBtn).join("")}` : ""}`);
+  mark();
+}
+function showStage(id, i) {
+  const l = LANE[id]; sel = null; ctx = id; lastInfo = () => showStage(id, i);
+  const ns = stageNodes(id, i), more = extrasAt(id + ":" + i), moving = focus !== id;
+  openPanel(`<div class="stepper" style="--k:${col(id)}"><button data-stage="${id}:${i - 1}" ${i <= 0 ? "disabled" : ""}>&#8249; Stage</button><span>${esc(l.name)}<br>stage ${i + 1} of ${l.stages.length}</span><button data-stage="${id}:${i + 1}" ${i >= l.stages.length - 1 ? "disabled" : ""}>Stage &#8250;</button></div>
+    <p class="kind">${esc(l.name)} · stage ${i + 1}</p><h2 style="color:${col(id)}">${esc(l.stages[i])}</h2>
+    <p>${ns.length} ${ns.length === 1 ? "option" : "options"} at this stage. You don't need all of them. Pick the one you could start this week.</p>
+    ${ns.map(n => rowBtn(n, id)).join("")}
+    ${more.length ? `<h3>Smaller options, not on the map</h3>${more.map(n => rowBtn(n, id)).join("")}` : ""}
+    ${i === l.stages.length - 1 && id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(id)}` : ""}
+    <div class="btns"><button class="btn" data-lanego="${id}">Whole ${esc(l.name)} path</button></div>`);
+  if (moving) setFocus(id); else { mark(); if (view === "map") setTimeout(() => reveal(SX[i], l.y), 440); }
+}
+// The end of every path can lead to founding something. What that tends to look like from each one:
+const FOUND = {
+  technical:"Researchers who have spent a few years on one problem start evaluation groups, security and interpretability startups, and new research organisations. Seldon Lab and Coefficient Giving's Project Tailwind both look for technical founders.",
+  policy:"Policy people start think tanks, advocacy organisations and tools that help governments check what AI companies are doing. Knowing exactly which rule is missing is a strong place to start from.",
+  outside:"People who keep showing up locally start chapters, campaigns and new advocacy organisations. Encode began as about 20 students opposing one ballot measure.",
+  comms:"Creators and journalists start channels, newsletters and media organisations. The Future of Life Institute's Digital Media Accelerator funds exactly this.",
+  ops:"Operators see the gaps first, because they are the ones working around them. Many founders in this field were running someone else's program two years earlier."
+};
+function showFound(l) {
+  sel = null; ctx = l; lastInfo = () => showFound(l);
+  openPanel(`<div class="stepper" style="--k:${col(l)}"><button data-lanego="${l}">&#8249; ${esc(LANE[l].name)}</button><span>Where this can lead</span></div>
+    <p class="kind">${esc(LANE[l].name)} · then</p><h2 style="color:${col("founders")}">Start an organisation</h2>
+    <p>The end of one path can be the start of another. Funders say money is not the bottleneck: founders are, and the best founders know a problem from the inside. A few years of doing the work is exactly that.</p>
+    <p>${esc(FOUND[l])}</p>
+    <h3>Where to start</h3>${["spinout", "bdincubator", "halcyon", "seed"].map(i => rowBtn(NODE[i], "founders")).join("")}
+    <div class="btns"><button class="btn pri" data-lanego="founders">See the Founders path &#8250;</button></div>`);
+  if (view === "map" && focus !== "founders") setFocus("founders"); else mark();
+}
+function showPerson(id) {
+  const p = PERSON[id]; sel = p.at; lastInfo = () => showPerson(id);
+  openPanel(`<div class="ph"><span class="av act" style="--k:${col(p.lane)}"><b style="color:#fff;font:700 22px var(--disp)">${p.ini}</b></span><div><p class="kind">A real route</p><h2>${esc(p.name)}</h2></div></div>
+    <p><b>${esc(p.role)}</b></p><p>${esc(p.story)}</p><h3>Their route on this map</h3>${p.route.map(i => rowBtn(NODE[i])).join("")}
+    <p class="mute" style="margin-top:12px">Every person on this map faced rejections along the way. None of them started qualified.</p>`);
+  mark();
+}
+function showHome() {
+  sel = null; lastInfo = showHome;
+  openPanel(`<p class="kind">Start here</p><h2>Three steps for this week</h2>
+    <p>You don't need to work out the whole path today. These three take about an hour between them and open most of the map.</p>
+    ${["bd_agi", "advising", "reach"].map(i => rowBtn(NODE[i])).join("")}
+    <div class="btns"><button class="btn pri" data-starter>Add all three to my plan</button><button class="btn" data-go="start" data-ctx="trunk" data-follow="1">Walk me through &#8250;</button></div>
+    <h3>Or jump to a path</h3><div>${LANES.map(l => `<button class="pill" style="--k:${col(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>`);
+  mark();
+}
+let lastInfo = showHome;
+function showPlan() {
+  const ids = Object.keys(plan).filter(i => NODE[i]);
+  openPanel(`<div class="plan"><h2>My plan</h2>
+    ${ids.length ? `<p class="mute">Tick things off as you do them. Your plan is saved in this browser only.</p><ul>${ids.map(i => { const n = NODE[i]; return `<li><input type="checkbox" id="pl-${i}" data-done="${i}" ${plan[i].done ? "checked" : ""} aria-label="Done: ${esc(flat(n))}">
+      <div class="t ${plan[i].done ? "done" : ""}"><b>${esc(flat(n))}</b><br><span>${esc(n.do)}</span>${n.url ? `<br><a href="${n.url}" target="_blank" rel="noopener">${esc(n.link || "Open site")} &#8599;</a>` : ""}</div>
+      <button class="x" data-remove="${i}" aria-label="Remove">&times;</button></li>`; }).join("")}</ul>
+      <div class="btns"><button class="btn pri" data-copy>Copy my plan</button></div><p class="mute" id="copied"></p>`
+    : `<p>Nothing here yet. A plan with three small steps beats a long list you never open again.</p><div class="btns"><button class="btn pri" data-starter>Add three starter steps</button></div>
+       <p class="mute">The starter steps are the AGI Strategy course, a free advising call and one message to someone in your field.</p>`}</div>`, true);
+  mark();
+}
+function planText() { return "My AI safety plan\n\n" + Object.keys(plan).filter(i => NODE[i]).map(i => { const n = NODE[i]; return `[${plan[i].done ? "x" : " "}] ${flat(n)}: ${n.do}${n.url ? " " + n.url : ""}`; }).join("\n"); }
+
+function renderList() {
+  let h = "";
+  if (focus === "all" || focus === "trunk") h += `<section><h2>Getting started</h2>${TRUNK_SEQ.map(i => NODE[i].type === "hub" ? `<h3>${esc(NODE[i].label)}</h3>${rowBtn(NODE[i], "trunk")}` : rowBtn(NODE[i], "trunk") + moreRows(i, "trunk")).join("")}</section>`;
+  LANES.filter(l => focus === "all" || focus === l.id).forEach(l => h += `<section style="--k:${col(l.id)}"><h2>${esc(l.name)}</h2><p>${esc(l.myth)}</p><h3>First, on every path</h3>${rowBtn(NODE.reach, l.id)}${l.stages.map((s, i) => `<h3>${i + 1} · ${esc(s)}</h3>${stageNodes(l.id, i).map(n => rowBtn(n, l.id)).join("")}${moreRows(l.id + ":" + i, l.id)}`).join("")}<h3>Then, on every path</h3>${rowBtn(NODE.events, l.id)}${l.id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(l.id)}` : ""}</section>`);
+  listwrap.innerHTML = h;
+}
+function setView(v) { view = v; wrap.hidden = v !== "map"; listwrap.hidden = v !== "list"; document.getElementById("vbtn").textContent = v === "map" ? "List view" : "Map view"; if (v === "list") renderList(); else { backings(); cancelAnimationFrame(anim); setVB(clampVB(viewFor(REG[focus]))); } }
+
+chips.innerHTML = `<button class="chip dark" data-f="all">Whole map</button><button class="chip dark" data-f="trunk">Getting started</button>` +
+  LANES.map(l => `<button class="chip" data-f="${l.id}" style="--k:${col(l.id)}">${esc(l.name)}</button>`).join("") +
+  `<span class="sep"></span><button class="tool" id="zout" aria-label="Zoom out">&minus;</button><button class="tool" id="zin" aria-label="Zoom in">+</button><button class="tool" id="zfit">Fit</button><button class="tool" id="vbtn">List view</button>`;
+chips.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.f) { const f = b.dataset.f; if (LANE[f]) { focus = f; showLane(f); flyTo(viewFor(REG[f])); } else if (f === "trunk") { focus = f; showHome(); flyTo(viewFor(REG[f])); } else setFocus(f); if (view === "list") renderList(); }
+  else if (b.id === "vbtn") setView(view === "map" ? "list" : "map"); });
+document.getElementById("zin").onclick = () => zoomAt(...centre(), .7, true);
+document.getElementById("zout").onclick = () => zoomAt(...centre(), 1.43, true);
+document.getElementById("zfit").onclick = () => flyTo(viewFor(REG[focus]));
+planbtn.onclick = showPlan;
+
+function goLane(l) { focus = l; showLane(l); if (view === "map") flyTo(viewFor(REG[l])); else renderList(); }
+function activate(t) {
+  const g = t.closest("[data-id],[data-lane],[data-person],[data-stage],[data-found]"); if (!g) return;
+  if (g.dataset.id) showNode(g.dataset.id); else if (g.dataset.person) showPerson(g.dataset.person); else if (g.dataset.found) showFound(g.dataset.found);
+  else if (g.dataset.stage) { const [l, i] = g.dataset.stage.split(":"); showStage(l, +i); }
+  else goLane(g.dataset.lane);
+}
+svg.addEventListener("click", e => { if (dragged) { dragged = false; return; } activate(e.target); });
+svg.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(e.target); } });
+addEventListener("keydown", e => { if (/INPUT|TEXTAREA/.test(e.target.tagName) || panel.hidden || !sel) return; if (e.key === "ArrowRight") step(1); else if (e.key === "ArrowLeft") step(-1); });
+function onPanelClick(e) {
+  const b = e.target.closest("button"); if (!b) return; const d = b.dataset;
+  if ("close" in d) { panel.hidden = true; sel = null; mark(); if (view === "map") flyTo(viewFor(REG[focus])); }
+  else if (d.tab) d.tab === "plan" ? showPlan() : lastInfo();
+  else if (d.step) step(+d.step);
+  else if (d.back) { const [l, i] = d.back.split(":"); i === undefined ? showNode(l, ctx) : showStage(l, +i); }
+  else if (d.found) showFound(d.found);
+  else if (d.stage) { const [l, i] = d.stage.split(":"); showStage(l, +i); }
+  else if (d.plan) { plan[d.plan] ? delete plan[d.plan] : plan[d.plan] = { done: false }; save(); showNode(d.plan, ctx); if (view === "list") renderList(); }
+  else if (d.go) showNode(d.go, d.ctx, !!d.follow || !!d.ctx);
+  else if (d.person) showPerson(d.person);
+  else if (d.lanego) goLane(d.lanego);
+  else if (d.remove) { delete plan[d.remove]; save(); showPlan(); }
+  else if ("starter" in d) { ["bd_agi", "advising", "reach"].forEach(i => plan[i] = plan[i] || { done: false }); save(); showPlan(); }
+  else if ("copy" in d) { const t = planText(), out = document.getElementById("copied");
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => out.textContent = "Copied. Paste it somewhere you'll see it tomorrow.", () => { out.innerHTML = `<textarea id="plantext" rows="8" style="width:100%" aria-label="Your plan as text">${esc(t)}</textarea>`; document.getElementById("plantext").select(); }); }
+}
+panel.addEventListener("click", onPanelClick);
+panel.addEventListener("change", e => { const i = e.target.dataset.done; if (i && plan[i]) { plan[i].done = e.target.checked; save(); showPlan(); } });
+listwrap.addEventListener("click", e => { const b = e.target.closest("[data-go],[data-found]"); if (!b) return; b.dataset.found ? showFound(b.dataset.found) : showNode(b.dataset.go, b.dataset.ctx); });
+
+draw();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(backings);
+const h0 = location.hash.slice(1);
+if (h0 === "list" || (!h0 && innerWidth < 700)) setView("list");
+if (REG[h0] && h0 !== "all") { focus = h0; if (LANE[h0]) showLane(h0); else showHome(); }
+else if (NODE[h0]) { const n = NODE[h0]; focus = n.lanes.length === 1 ? n.lanes[0] : n.lanes.length ? "all" : "trunk"; showNode(h0); }
+else if (PERSON[h0]) showPerson(h0); else if (h0 === "plan") showPlan();
+cancelAnimationFrame(anim); setVB(clampVB(viewFor(REG[focus]))); mark();
+</script>
