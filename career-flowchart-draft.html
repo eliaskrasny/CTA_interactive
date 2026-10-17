@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap">
 <style>
 /* Layout: one-screen app. Logo bar, path chips, then the chart (trunk on the left, six coloured paths running right to a shared bar). A detail panel slides over the right edge on click.
-   Brand (AI Safety Said Simply visual identity, Oct 2026): Ink on Paper, square corners, flat colour, no shadows. Helvetica Neue for text, Baskerville Bold for headings,
+   Brand (AI Safety Said Simply visual identity, Oct 2026): Ink on Paper, flat colour, no shadows. Corners are rounded at the team's request: anything you press is an oval. Helvetica Neue for text, Baskerville Bold for headings,
    bold small caps for labels. Strand does one job per screen: the clause in the map title. Path colours come from the extended palette, which is for diagrams. */
 :root{
   --paper:#ffffff;--paper2:#f5f5f5;--dot:#ebebeb;--card:#ffffff;--ink:#111111;--ink2:#262626;--mute:#595959;--rule:#d4d4d4;
@@ -22,7 +22,7 @@
 html,body{height:100%}
 [hidden]{display:none!important}
 body{margin:0;display:flex;flex-direction:column;background:var(--paper);color:var(--ink);font:15px/1.5 var(--body)}
-button{font:inherit;color:inherit;cursor:pointer;border-radius:0}
+button{font:inherit;color:inherit;cursor:pointer}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 /* Labels: Helvetica bold small caps. */
@@ -34,14 +34,14 @@ a{color:inherit}
 .brand svg{height:40px;width:auto;flex:none}
 .bar h1{font:700 22px/1.1 var(--serif);margin:0}
 .bar .sub{font-size:13px;color:var(--mute);margin:0;flex:1;min-width:180px}
-.cta{background:var(--ink);color:var(--paper);font:500 14px/1.2 var(--sans);text-decoration:none;padding:11px 14px}
-.planbtn{background:var(--paper2);border:0;color:var(--ink);font:500 14px/1.2 var(--sans);padding:11px 14px}
+.cta{background:var(--ink);color:var(--paper);font:500 14px/1.2 var(--sans);text-decoration:none;padding:11px 18px;border-radius:999px}
+.planbtn{background:var(--paper2);border:0;color:var(--ink);font:500 14px/1.2 var(--sans);padding:11px 18px;border-radius:999px}
 
 .chips{display:flex;gap:8px;align-items:center;padding:8px 16px;overflow-x:auto;border-bottom:1px solid var(--rule);background:var(--card)}
-.chip{flex:none;font:600 13px/1 var(--sans);padding:9px 12px;border:0;border-left:4px solid var(--k,var(--ink));background:var(--paper2);color:var(--ink)}
+.chip{flex:none;font:600 13px/1 var(--sans);padding:8px 14px;border:2px solid var(--k,var(--ink));border-radius:999px;background:none;color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--k,var(--ink));color:var(--kon,var(--paper))}
 .sep{flex:1;min-width:8px}
-.tool{flex:none;font:500 14px/1 var(--sans);padding:9px 12px;border:0;background:var(--paper2)}
+.tool{flex:none;font:500 14px/1 var(--sans);padding:9px 14px;border:0;border-radius:999px;background:var(--paper2)}
 
 .stage{flex:1;min-height:0;display:flex;position:relative}
 .mapwrap{flex:1;min-width:0;position:relative;overflow:hidden;touch-action:none;background-image:radial-gradient(var(--dot) 1.2px,transparent 1.3px);background-size:22px 22px;cursor:grab}
@@ -84,11 +84,11 @@ svg.started .pulse{display:none}
 .panel p{margin:8px 0 0}
 .ptop{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
 .tabs{display:flex;gap:6px}
-.tab{font:500 13px/1 var(--sans);padding:9px 11px;border:0;background:var(--paper2)}
+.tab{font:500 13px/1 var(--sans);padding:9px 14px;border:0;border-radius:999px;background:var(--paper2)}
 .tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
-.stepper{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px;background:var(--paper2);border-left:4px solid var(--k,var(--ink))}
+.stepper{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px;background:color-mix(in srgb,var(--k,var(--ink)) 12%,var(--paper));border-radius:28px}
 .stepper span{flex:1;text-align:center;font-size:14px;line-height:1.25;color:var(--ink2)}
-.stepper button{font:500 14px/1 var(--sans);padding:9px 11px;border:0;background:var(--ink);color:var(--paper)}
+.stepper button{font:500 14px/1 var(--sans);padding:9px 14px;border:0;border-radius:999px;background:var(--ink);color:var(--paper)}
 .stepper button:disabled{opacity:.3;cursor:default}
 .ph{display:flex;gap:12px;align-items:center}
 .av{flex:none;width:56px;height:56px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;border:3px solid var(--k,var(--ink))}
@@ -96,13 +96,13 @@ svg.started .pulse{display:none}
 .av.act{background:var(--k,var(--ink))}.av svg{width:30px;height:30px}
 .av.sm{width:34px;height:34px;border-width:2px}.av.sm svg{width:18px;height:18px}
 .kind{font-size:13px;line-height:1.3;color:var(--mute);margin:0 0 4px!important}
-.do{border-left:3px solid var(--ink);padding:10px 12px;margin-top:14px;background:var(--paper2)}
+.do{padding:12px 16px;margin-top:14px;background:var(--paper2);border-radius:18px}
 .do b{font-size:14px;line-height:1}
 .do p{margin:4px 0 0}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.btn{font:500 15px/1 var(--sans);padding:12px 14px;border:0;background:var(--paper2);text-decoration:none}
+.btn{font:500 15px/1 var(--sans);padding:12px 18px;border:0;border-radius:999px;background:var(--paper2);text-decoration:none}
 .btn.pri,.btn.on{background:var(--ink);color:var(--paper)}
-.pill{display:inline-block;font:600 13px/1 var(--sans);color:var(--kon,#fff);background:var(--k);padding:7px 10px;border:0;margin:0 4px 4px 0}
+.pill{display:inline-block;font:600 13px/1 var(--sans);color:var(--kon,#fff);background:var(--k);padding:7px 12px;border:0;border-radius:999px;margin:0 4px 4px 0}
 .myth{font:500 19px/1.35 var(--sans);color:var(--ink2);margin-top:10px!important}
 .rowbtn{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--rule);padding:8px 0}
 .rowbtn span.t{flex:1;min-width:0;font-weight:500}
@@ -117,7 +117,8 @@ details.more[open] summary{color:var(--ink)}
 .plan .t{flex:1;min-width:0}.plan .done{text-decoration:line-through;color:var(--mute)}
 .x{background:none;border:0;font-size:22px;line-height:1;color:var(--mute);padding:2px 6px}
 .mute{color:var(--mute);font-size:13px}
-.listwrap h2{font:700 25px/1.2 var(--serif);margin:28px 0 4px;padding-left:10px;border-left:4px solid var(--k,var(--ink))}
+.listwrap h2{font:700 25px/1.2 var(--serif);margin:28px 0 4px;display:flex;align-items:center;gap:10px}
+.listwrap h2::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--k,var(--ink));flex:none}
 .listwrap h3{font-size:14px;line-height:1;color:var(--mute);margin:16px 0 2px}
 .listwrap section{max-width:720px;margin:0 auto}
 </style>
@@ -575,8 +576,8 @@ function nodeSvg(n, p) {
   const a = `data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(flat(n))}"`;
   if (n.type === "bar") {
     const y0 = LANES[0].y - 62, y1 = LANES[5].y + 62;
-    return `<g class="n ${cls(n)}" ${a}><rect class="halo" x="${n.x - 46}" y="${y0 - 10}" width="92" height="${y1 - y0 + 20}"/>
-      <rect x="${n.x - 36}" y="${y0}" width="72" height="${y1 - y0}" fill="var(--card)" stroke="var(--ink)" stroke-width="6"/>
+    return `<g class="n ${cls(n)}" ${a}><rect class="halo" x="${n.x - 46}" y="${y0 - 10}" width="92" height="${y1 - y0 + 20}" rx="46"/>
+      <rect x="${n.x - 36}" y="${y0}" width="72" height="${y1 - y0}" rx="36" fill="var(--card)" stroke="var(--ink)" stroke-width="6"/>
       ${LANES.map(l => `<circle cx="${n.x}" cy="${l.y}" r="15" fill="var(${l.color})" stroke="var(--card)" stroke-width="4"/>`).join("")}
       ${n.seg.map((t, i) => `<text class="bartxt" transform="translate(${n.x - 9},${(LANES[i].y + LANES[i + 1].y) / 2}) rotate(90)">${esc(t)}</text>`).join("")}
       <g class="badge" transform="translate(${n.x},${y0 - 6})">${tick(15)}</g></g>`;
@@ -612,7 +613,7 @@ function draw() {
     const c = `var(${l.color})`;
     e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="${hcurve(P("reach"), { x: PILLX - 112, y: l.y })}"/>`;
     e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="M${PILLX} ${l.y}H${BAR2}"/>`;
-    top += `<g class="lane l-${l.id}" data-lane="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)} path" transform="translate(${PILLX},${l.y})"><rect x="-112" y="-30" width="224" height="60" fill="${c}"/><text class="lanetxt" y="8" style="fill:${kon(l.id)}">${esc(l.name)}</text></g>`;
+    top += `<g class="lane l-${l.id}" data-lane="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)} path" transform="translate(${PILLX},${l.y})"><rect x="-112" y="-30" width="224" height="60" rx="30" fill="${c}"/><text class="lanetxt" y="8" style="fill:${kon(l.id)}">${esc(l.name)}</text></g>`;
     l.stages.forEach((s, i) => {
       top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${esc(l.name)} stage ${i + 1}: ${esc(s)}">
       <circle cx="${SX[i]}" cy="${l.y}" r="12" fill="var(--paper)" stroke="${c}" stroke-width="6"/>
@@ -623,11 +624,11 @@ function draw() {
       const x = SX[i] + (i < 4 ? 200 : -200), y = l.y + 62;
       e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="3" stroke-dasharray="2 7" d="${vcurve({ x, y: y - 15 }, { x: SX[i], y: l.y })}"/>`;
       top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${m.length} more ${esc(l.name)} options at stage ${i + 1}" transform="translate(${x},${y})">
-      <rect x="-46" y="-15" width="92" height="30" fill="var(--paper)" stroke="${c}" stroke-width="3"/><text class="stg ink" y="6">+${m.length} more</text></g>`;
+      <rect x="-46" y="-15" width="92" height="30" rx="15" fill="var(--paper)" stroke="${c}" stroke-width="3"/><text class="stg ink" y="6">+${m.length} more</text></g>`;
     });
     // Past the last stage, every other path points on to founding something.
     if (l.id !== "founders") top += `<g class="tofound l-${l.id}" data-found="${l.id}" tabindex="0" role="button" aria-label="From ${esc(l.name)} to founding an organisation" transform="translate(${(SX[4] + BAR2) / 2 - 10},${l.y})">
-      <rect x="-56" y="-16" width="112" height="32" fill="var(--f)"/>
+      <rect x="-56" y="-16" width="112" height="32" rx="16" fill="var(--f)"/>
       <text class="stg" y="6" style="fill:var(--f-on)">→ Founders</text></g>`;
   });
   NODES.filter(n => n.type === "leaf").forEach(n => n.pos.forEach(p => p.lanes.forEach(l => e += `<path class="e l-${l}" stroke="${col(l)}" stroke-width="5" d="${vcurve(p, { x: SX[p.stage], y: LANE[l].y })}"/>`)));
@@ -640,7 +641,7 @@ function draw() {
     <g transform="translate(22,90)"><circle r="17" fill="var(--o)"/>${icon("pencil", .9, "var(--o-on)")}<text class="leg" x="36" y="7">Solid circle: something you do yourself</text></g>
     <g transform="translate(520,44)"><circle r="17" fill="#fff"/>${ring(["var(--t)", "var(--p)", "var(--c)"], 18)}<text class="leg" x="36" y="7">Several colours: counts on several paths</text></g>
     <g transform="translate(520,90)"><circle r="15" fill="var(--ink)" stroke="var(--c)" stroke-width="5"/><text class="leg" x="36" y="7">Initials: a real person who took this route</text></g>
-    <g transform="translate(1050,44)"><rect x="-26" y="-12" width="52" height="24" fill="var(--paper)" stroke="var(--t)" stroke-width="3"/><text class="stg ink" style="font-size:14px" y="5">+3</text><text class="leg" x="38" y="7">More: smaller options at that stage</text></g>
+    <g transform="translate(1050,44)"><rect x="-26" y="-12" width="52" height="24" rx="12" fill="var(--paper)" stroke="var(--t)" stroke-width="3"/><text class="stg ink" style="font-size:14px" y="5">+3</text><text class="leg" x="38" y="7">More: smaller options at that stage</text></g>
     <text class="leg" x="0" y="138">Scroll to move · pinch or Ctrl + scroll to zoom · programs and deadlines checked October 2026</text></g>`;
   const nodes = NODES.map(n => n.type === "bar" ? nodeSvg(n) : n.pos.map(p => nodeSvg(n, p)).join("")).join("");
   svg.innerHTML = `<g id="edges">${e}</g>
