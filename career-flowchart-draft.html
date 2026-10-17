@@ -142,10 +142,10 @@ details.more[open] summary{color:var(--ink)}
 <script src="logos.js"></script>
 <script>
 const LG = window.LOGOS || {};
-const W = 3840, H = 1840;
+const W = 4320, H = 1840;
 const SX = [1960, 2360, 2760, 3160, 3560];        // stage columns
 const ROW = [100, 370, 640, 910, 1180, 1450, 1720]; // rows of circles between the path lines
-const REACHX = 1440, PILLX = 1650, BAR2 = 3770;
+const REACHX = 1440, PILLX = 1650, LINE_END = 3720, ENDX = 3960; // paths split at REACHX, run straight to LINE_END, then meet at ENDX
 const ICON = {
   doc:"M7 3h7l4 4v14H7z M14 3v4h4 M10 12h5 M10 16h5", pencil:"M4 20l1-4L16 5l3 3L8 19z M14 7l3 3", chat:"M4 5h16v10H10l-4 4v-4H4z",
   people:"M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 5.5a3 3 0 0 1 0 5.5 M17 14.3c2.3.8 4 3 4 5.7",
@@ -296,7 +296,7 @@ T("funding", 960, 1025, "sat", "Transition\nfunding", { logo:"bluedot", parent:[
   do:"Check BlueDot's grants page and note what you'd ask for and why." });
 
 T("pick", 1250, 910, "hub", "PICK A PATH", { icon:"compass", kind:"Step 2", tag:"Six paths", parent:["learn"], lx:15,
-  text:"Six paths, and most don't need a technical background. They overlap on purpose: a circle with several colours in its ring belongs to several paths, so you can start before you have fully decided. Every path starts the same way, by reaching out to people in your field, and ends the same way, by meeting the field in person. Your route probably won't be a straight line.",
+  text:"Six paths, and most don't need a technical background. They overlap on purpose: a circle with several colours in its ring belongs to several paths, so you can start before you have fully decided. Every path starts the same way, by reaching out to people in your field, and ends the same way, by helping build the field. Your route probably won't be a straight line.",
   do:"Click a coloured path name to see the whole route and what it pays, then press Start this path." });
 
 /* ---------- the two steps every path shares: one node where the paths split, one bar where they end ---------- */
@@ -304,10 +304,21 @@ NODES.push({ id:"reach", type:"hub", label:"REACH OUT", title:"Reach out to peop
   kind:"Every path", tag:"Free · one message a day",
   text:"This is the step every path shares. People in AI safety love to help, and they want more people in the field. Find someone doing the work you want to do, whatever your field is, and ask them one specific question. Most will say yes to twenty minutes. One conversation often leads to an introduction, a project or a job you would never have seen posted.",
   do:"Message one person today. Three sentences: who you are, what you liked about their work, and one specific question." });
-NODES.push({ id:"events", type:"bar", x:BAR2, label:"GO TO EVENTS · MEET THE FIELD IN PERSON", seg:["GO TO EVENTS","MEET","THE FIELD","IN PERSON","OFTEN"], icon:"people", lanes:ALL, st:Object.fromEntries(ALL.map(l => [l, 9])), pos:[{ x:BAR2, y:910, lanes:ALL }],
-  kind:"Every path", tag:"Conferences and meetups", url:"https://www.aisafety.com/events", link:"Open the events calendar",
+// Where the paths meet again. Its three stops come after it in every path's step order (stage 10).
+const END = o => ({ lanes: ALL, st: Object.fromEntries(ALL.map(l => [l, 10])), parent: ["build"], ...o });
+T("build", ENDX, 910, "hub", "BUILD THE FIELD", { title:"Help build the field", lx:70, icon:"people", lanes:ALL, st:Object.fromEntries(ALL.map(l => [l, 9])),
+  kind:"Every path", tag:"Where every path ends",
+  text:"Every path ends the same way: by leaving the field bigger and better than you found it. Go to events and meet people in person. Reach back out to the people starting where you started. And keep watching for problems nobody is working on yet, because the field changes as fast as the technology does.",
+  do:"Pick one of the three this month: an event to go to, a newcomer to help, or a problem to write down." });
+T("events", ENDX + 170, 700, "sat", "Go to\nevents", END({ lp:"t", icon:"people", kind:"Every path", tag:"Conferences and meetups", url:"https://www.aisafety.com/events", link:"Open the events calendar",
   text:"Whatever path you're on, people hire people they have met. AISafety.com keeps a calendar of conferences, workshops and meetups. EA Global has a large AI safety track and runs in San Francisco (19 to 21 March 2027), London (28 to 30 May 2027) and Washington DC (15 to 17 October 2027). ControlConf covers AI control research. One good conversation in person can do more than a month of applications.",
-  do:"Pick one event in the next three months and apply or register today." });
+  do:"Pick one event in the next three months and apply or register today." }));
+T("giveback", ENDX + 250, 910, "sat", "Reach back\nout", END({ icon:"chat", kind:"Every path", tag:"An hour a month",
+  text:"Someone answered your first message. Return the favour. Reply to the people who reach out to you, mentor a newcomer through a program such as SPAR, introduce people who should know each other, and write up how you got in so the next person has a map.",
+  do:"Reply to every cold message you get this month, and offer one person twenty minutes." }));
+T("problems", ENDX + 170, 1120, "sat", "Find new\nproblems", END({ icon:"search", kind:"Every path", tag:"Ongoing", url:"https://coefficientgiving.org/tailwind", link:"See Project Tailwind's idea list",
+  text:"AI keeps changing, and so do the problems. New capabilities open up risks nobody is working on yet, and people inside the field are usually the first to notice. Keep a running list of the gaps you see. Funders publish lists of the research and organisations they want to exist, and some of the field's most useful projects started as one person's note to self.",
+  do:"Start a list today, and add one problem a month that you think nobody owns." }));
 
 /* ---------- paths ---------- */
 // Row 0: technical
@@ -552,6 +563,7 @@ LANES.forEach(l => SEQ[l.id] = NODES.filter(n => n.type !== "extra" && n.lanes.i
 const seqName = c => c === "trunk" ? "Getting started" : LANE[c].name;
 const stageNodes = (l, i) => SEQ[l].map(id => NODE[id]).filter(n => n.st[l] === i);
 // Extras listed under a circle (key = its id) or at a stage (key = "lane:stage", including those under a circle at that stage).
+const END_IDS = ["build", "events", "giveback", "problems"];
 const extrasAt = key => { const [l, s] = key.split(":"); return NODES.filter(n => n.type === "extra" && (s === undefined ? n.at.includes(key) : n.st[l] === +s)); };
 
 /* ---------- draw the chart ---------- */
@@ -596,7 +608,7 @@ function nodeSvg(n, p) {
   return `<g class="n ${cls(n)}" ${a} ${t}><circle class="halo" r="43"/>${face}${ring(cols, 31)}
     ${n.star || n.open ? `<g transform="translate(27,-27)"><circle r="14" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>${icon(n.star ? "star" : "flag", .8, "var(--paper)")}</g>` : ""}
     <g class="badge" transform="translate(-27,-27)">${tick(13)}</g>
-    ${n.lp === "r" ? lines(n.label, nl > 1 ? -2 : 7, "lbl r", 21, 46) : lines(n.label, 58, "lbl", 21)}</g>`;
+    ${n.lp === "r" ? lines(n.label, nl > 1 ? -2 : 7, "lbl r", 21, 46) : n.lp === "t" ? lines(n.label, -44 - (nl - 1) * 21, "lbl", 21) : lines(n.label, 58, "lbl", 21)}</g>`;
 }
 function draw() {
   let e = "", top = "";
@@ -607,12 +619,13 @@ function draw() {
   // Advising, the job board and funding are for everyone, so they hang off the main line on their own stub, not on a line running between the student and mid-career hubs.
   e += `<path class="trunk l-trunk e" stroke-width="7" d="M${P("advising").x} ${P("advising").y}V${P("funding").y}"/>`;
   top += `<text class="stg ink ann l-trunk" x="${P("advising").x}" y="${P("advising").y - 50}">For everyone</text>`;
-  NODES.filter(n => n.type === "sat" && n.lp !== "r").forEach(n => n.parent.forEach(h => e += `<path class="trunk l-trunk e" stroke-width="5" d="${vcurve(P(h), n.pos[0])}"/>`));
+  NODES.filter(n => n.type === "sat" && n.lp !== "r").forEach(n => n.parent.forEach(h => e += `<path class="trunk ${cls(n)} e" stroke-width="5" d="${vcurve(P(h), n.pos[0])}"/>`));
   // paths
   LANES.forEach(l => {
     const c = `var(${l.color})`;
     e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="${hcurve(P("reach"), { x: PILLX - 112, y: l.y })}"/>`;
-    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="M${PILLX} ${l.y}H${BAR2}"/>`;
+    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="M${PILLX} ${l.y}H${LINE_END}"/>`;
+    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="${hcurve({ x: LINE_END, y: l.y }, P("build"))}"/>`;
     top += `<g class="lane l-${l.id}" data-lane="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)} path" transform="translate(${PILLX},${l.y})"><rect x="-112" y="-30" width="224" height="60" rx="30" fill="${c}"/><text class="lanetxt" y="8" style="fill:${kon(l.id)}">${esc(l.name)}</text></g>`;
     l.stages.forEach((s, i) => {
       top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${esc(l.name)} stage ${i + 1}: ${esc(s)}">
@@ -627,7 +640,7 @@ function draw() {
       <rect x="-46" y="-15" width="92" height="30" rx="15" fill="var(--paper)" stroke="${c}" stroke-width="3"/><text class="stg ink" y="6">+${m.length} more</text></g>`;
     });
     // Past the last stage, every other path points on to founding something.
-    if (l.id !== "founders") top += `<g class="tofound l-${l.id}" data-found="${l.id}" tabindex="0" role="button" aria-label="From ${esc(l.name)} to founding an organisation" transform="translate(${(SX[4] + BAR2) / 2 - 10},${l.y})">
+    if (l.id !== "founders") top += `<g class="tofound l-${l.id}" data-found="${l.id}" tabindex="0" role="button" aria-label="From ${esc(l.name)} to founding an organisation" transform="translate(${SX[4] + 95},${l.y})">
       <rect x="-56" y="-16" width="112" height="32" rx="16" fill="var(--f)"/>
       <text class="stg" y="6" style="fill:var(--f-on)">→ Founders</text></g>`;
   });
@@ -665,7 +678,7 @@ function backings() {
 const panel = document.getElementById("panel"), listwrap = document.getElementById("listwrap"), chips = document.getElementById("chips"), planbtn = document.getElementById("planbtn");
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
 const REG = { all: { x: -30, y: -20, w: W + 60, h: H + 40 }, trunk: { x: 40, y: 250, w: 1500, h: 1370 } };
-LANES.forEach(l => REG[l.id] = { x: 1290, y: clampN(l.y - 335, 0, H - 670), w: W - 1270, h: 670 });
+LANES.forEach(l => REG[l.id] = { x: 1290, y: clampN(l.y - 335, 0, H - 670), w: ENDX + 60 - 1290, h: 670 });
 let vb = { x: 0, y: 0, w: W, h: H }, anim = 0, focus = "all";
 const size = () => ({ cw: wrap.clientWidth || 1200, ch: wrap.clientHeight || 700 });
 const padR = () => (!panel.hidden && innerWidth > 820) ? Math.min(panel.offsetWidth, size().cw * .6) : 0;
@@ -756,11 +769,12 @@ function showNode(id, c, follow) {
   ctx = fits(c) ? c : fits(focus) ? focus : n.lanes.length ? (n.lanes.includes(ctx) ? ctx : n.lanes[0]) : "trunk";
   lastInfo = () => showNode(id, ctx);
   const seq = SEQ[ctx], i = seq.indexOf(id), kc = ctx === "trunk" ? "var(--ink)" : col(ctx), here = PEOPLE.filter(p => p.route.includes(id)), more = extrasAt(id);
+  const kids = n.type === "hub" ? NODES.filter(k => k.type === "sat" && (k.parent || []).includes(id)) : [];
   const stage = ctx !== "trunk" && n.st[ctx] >= 0 && n.st[ctx] < 9 ? ` · ${LANE[ctx].stages[n.st[ctx]]}` : "";
   const moving = follow && focus !== ctx;
   // An extra has no place in the step order, so its Back returns to the circle or stage it was listed under.
   const back = n.type === "extra" && (n.at.find(a => NODE[a] && (ctx === "trunk" ? !NODE[a].lanes.length : NODE[a].lanes.includes(ctx))) || `${ctx}:${n.st[ctx]}`);
-  const lead = LANE[ctx] && ctx !== "founders" && (n.st[ctx] === 4 || id === "events");
+  const lead = LANE[ctx] && ctx !== "founders" && (n.st[ctx] === 4 || id === "build" || id === "problems");
   openPanel(`<div class="stepper ${ctx === "trunk" ? "ink" : ""}" style="--k:${kc}">${back
       ? `<button data-back="${back}">&#8249; Back</button><span>${esc(seqName(ctx))}${esc(stage)}<br>more options</span>`
       : `<button data-step="-1" ${i <= 0 ? "disabled" : ""} aria-label="Previous step">&#8249; Back</button><span>${esc(seqName(ctx))}${esc(stage)}<br>step ${i + 1} of ${seq.length}</span><button data-step="1" ${i >= seq.length - 1 ? "disabled" : ""} aria-label="Next step">Next &#8250;</button>`}</div>
@@ -774,6 +788,7 @@ function showNode(id, c, follow) {
     ${id === "pick" ? `<h3>The six paths</h3><div>${LANES.map(l => `<button class="pill" style="${kv(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>` : ""}
     ${more.length ? `<h3>More like this</h3>${more.map(m => rowBtn(m, ctx)).join("")}` : ""}
     ${lead ? `<h3>Where this can lead</h3>${foundBtn(ctx)}` : ""}
+    ${kids.length ? `<h3>From here</h3>${kids.map(k => rowBtn(k, ctx)).join("")}` : ""}
     ${here.length ? `<h3>Who went this way</h3>${here.map(personBtn).join("")}` : ""}`);
   if (moving) setFocus(ctx); else mark();
   if (view === "map" && !moving && n.pos.length) { const p = ctx === "trunk" ? n.pos[0] : posFor(n, ctx); setTimeout(() => reveal(p.x, n.type === "bar" ? LANE[ctx].y : p.y), 440); }
@@ -787,7 +802,7 @@ function showLane(id) {
     <div class="btns"><button class="btn pri" data-go="${SEQ[id][0]}" data-ctx="${id}" data-follow="1">Start this path &#8250;</button></div>
     <h3>First, on every path</h3>${rowBtn(NODE.reach, id)}
     ${l.stages.map((s, i) => `<button class="h3btn" style="${kv(id)}" data-stage="${id}:${i}">${i + 1} · ${esc(s)}</button>${stageNodes(id, i).map(n => rowBtn(n, id)).join("")}${moreRows(id + ":" + i, id)}`).join("")}
-    <h3>Then, on every path</h3>${rowBtn(NODE.events, id)}
+    <h3>Then, on every path</h3>${END_IDS.map(i => rowBtn(NODE[i], id)).join("")}
     ${id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(id)}` : ""}
     <h3>What it pays</h3><p>${esc(l.pay)}</p><h3>Know before you start</h3><p>${esc(l.caveat)}</p>
     ${ppl.length ? `<h3>Someone who did it</h3>${ppl.map(personBtn).join("")}` : ""}`);
@@ -856,7 +871,7 @@ function planText() { return "My AI safety plan\n\n" + Object.keys(plan).filter(
 function renderList() {
   let h = "";
   if (focus === "all" || focus === "trunk") h += `<section><h2>Getting started</h2>${TRUNK_SEQ.map(i => NODE[i].type === "hub" ? `<h3>${esc(NODE[i].label)}</h3>${rowBtn(NODE[i], "trunk")}` : rowBtn(NODE[i], "trunk") + moreRows(i, "trunk")).join("")}</section>`;
-  LANES.filter(l => focus === "all" || focus === l.id).forEach(l => h += `<section style="${kv(l.id)}"><h2>${esc(l.name)}</h2><p>${esc(l.myth)}</p><h3>First, on every path</h3>${rowBtn(NODE.reach, l.id)}${l.stages.map((s, i) => `<h3>${i + 1} · ${esc(s)}</h3>${stageNodes(l.id, i).map(n => rowBtn(n, l.id)).join("")}${moreRows(l.id + ":" + i, l.id)}`).join("")}<h3>Then, on every path</h3>${rowBtn(NODE.events, l.id)}${l.id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(l.id)}` : ""}</section>`);
+  LANES.filter(l => focus === "all" || focus === l.id).forEach(l => h += `<section style="${kv(l.id)}"><h2>${esc(l.name)}</h2><p>${esc(l.myth)}</p><h3>First, on every path</h3>${rowBtn(NODE.reach, l.id)}${l.stages.map((s, i) => `<h3>${i + 1} · ${esc(s)}</h3>${stageNodes(l.id, i).map(n => rowBtn(n, l.id)).join("")}${moreRows(l.id + ":" + i, l.id)}`).join("")}<h3>Then, on every path</h3>${END_IDS.map(i => rowBtn(NODE[i], l.id)).join("")}${l.id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(l.id)}` : ""}</section>`);
   listwrap.innerHTML = h;
 }
 function setView(v) { view = v; wrap.hidden = v !== "map"; listwrap.hidden = v !== "list"; document.getElementById("vbtn").textContent = v === "map" ? "List view" : "Map view"; if (v === "list") renderList(); else { backings(); cancelAnimationFrame(anim); setVB(clampVB(viewFor(REG[focus]))); } }
