@@ -2,120 +2,123 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap">
 <style>
-/* Layout: one-screen app. Logo bar, path chips, then the chart (trunk on the left, six coloured paths running right between two shared bars). A detail panel slides over the right edge on click.
-   Brand (AI Safety Said Simply): Helvetica throughout, monochrome ink/grey/white, hero orange as the one accent. Path colours stay distinct because they carry meaning; Operations moved off orange so it never reads as the accent. */
+/* Layout: one-screen app. Logo bar, path chips, then the chart (trunk on the left, six coloured paths running right to a shared bar). A detail panel slides over the right edge on click.
+   Brand (AI Safety Said Simply visual identity, Oct 2026): Ink on Paper, square corners, flat colour, no shadows. Helvetica Neue for text, Baskerville Bold for headings,
+   bold small caps for labels. Strand does one job per screen: the clause in the map title. Path colours come from the extended palette, which is for diagrams. */
 :root{
-  --paper:#f5f5f5;--dot:#dedede;--card:#ffffff;--ink:#111111;--mute:#595959;--rule:#dcdcdc;--hi:#c64d0a;--onhi:#ffffff;
-  --t:#2b6de0;--p:#1f9d55;--o:#7a4fd8;--c:#d6398f;--op:#0e7c86;--f:#b88a00;--ok:#1f9d55;--on:#fff;
-  --disp:"Helvetica Neue",Helvetica,Arial,sans-serif;--body:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --paper:#ffffff;--paper2:#f5f5f5;--dot:#ebebeb;--card:#ffffff;--ink:#111111;--ink2:#262626;--mute:#595959;--rule:#d4d4d4;
+  --strand:#c64d0a;--live:#ff8a3d;
+  --t:#1b3a4b;--p:#1e5c44;--o:#5c534c;--c:#8c3410;--op:#e2a100;--f:#ff8a3d;
+  --t-on:#ffffff;--p-on:#ffffff;--o-on:#ffffff;--c-on:#ffffff;--op-on:#111111;--f-on:#111111;
+  --sans:"Helvetica Neue",Helvetica,Arial,"TeX Gyre Heros",sans-serif;--serif:Baskerville,"Libre Baskerville",Georgia,serif;
+  --disp:var(--sans);--body:var(--sans);
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#111111;--dot:#262626;--card:#1b1b1b;--ink:#f5f5f5;--mute:#a6a6a6;--rule:#333333;--hi:#ff8a3d;--onhi:#111111;--t:#5b93ff;--p:#3fc27a;--o:#a183f5;--c:#f065b0;--op:#38bcc6;--f:#e0b020;--ok:#3fc27a;--on:#111111;color-scheme:dark}}
-:root[data-theme="dark"]{--paper:#111111;--dot:#262626;--card:#1b1b1b;--ink:#f5f5f5;--mute:#a6a6a6;--rule:#333333;--hi:#ff8a3d;--onhi:#111111;--t:#5b93ff;--p:#3fc27a;--o:#a183f5;--c:#f065b0;--op:#38bcc6;--f:#e0b020;--ok:#3fc27a;--on:#111111;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#111111;--paper2:#1c1c1c;--dot:#262626;--card:#111111;--ink:#ffffff;--ink2:#ebebeb;--mute:#a6a6a6;--rule:#333333;--strand:#e0662a;
+  --t:#7d9bad;--p:#6fae93;--o:#b3aaa2;--c:#d98a68;--op:#e2a100;--f:#ff8a3d;--t-on:#111111;--p-on:#111111;--o-on:#111111;--c-on:#111111;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#111111;--paper2:#1c1c1c;--dot:#262626;--card:#111111;--ink:#ffffff;--ink2:#ebebeb;--mute:#a6a6a6;--rule:#333333;--strand:#e0662a;
+  --t:#7d9bad;--p:#6fae93;--o:#b3aaa2;--c:#d98a68;--op:#e2a100;--f:#ff8a3d;--t-on:#111111;--p-on:#111111;--o-on:#111111;--c-on:#111111;color-scheme:dark}
 html,body{height:100%}
 [hidden]{display:none!important}
 body{margin:0;display:flex;flex-direction:column;background:var(--paper);color:var(--ink);font:15px/1.5 var(--body)}
-button{font:inherit;color:inherit;cursor:pointer}
+button{font:inherit;color:inherit;cursor:pointer;border-radius:0}
 a{color:inherit}
-:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* Labels: Helvetica bold small caps. */
+.kind,.panel h3,.listwrap h3,.stepper span,.do b,details.more summary,.h3btn{font-family:var(--sans);font-weight:700;font-variant-caps:all-small-caps;letter-spacing:.08em;text-transform:none}
 
-.bar{background:var(--card);color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:10px 16px;border-bottom:1px solid var(--rule)}
+.bar{background:var(--card);color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;padding:12px 16px;border-bottom:1px solid var(--rule)}
 .bar>*{max-width:100%;min-width:0}
-.brand{display:flex;align-items:center;gap:14px;color:var(--ink);text-decoration:none;padding:4px 0}
-.brand svg{height:32px;width:auto;flex:none}
-.bar h1{font:700 19px/1.1 var(--disp);letter-spacing:-.01em;margin:0;padding-left:14px;border-left:1px solid var(--rule)}
+.brand{display:flex;align-items:center;color:var(--ink);text-decoration:none}
+.brand svg{height:40px;width:auto;flex:none}
+.bar h1{font:700 22px/1.1 var(--serif);margin:0}
 .bar .sub{font-size:13px;color:var(--mute);margin:0;flex:1;min-width:180px}
-.cta{background:var(--hi);color:var(--onhi);font:700 14px/1.2 var(--disp);text-decoration:none;padding:10px 14px;border-radius:4px}
-.planbtn{background:none;border:1.5px solid var(--ink);color:var(--ink);font:700 14px/1.2 var(--disp);padding:9px 12px;border-radius:4px}
+.cta{background:var(--ink);color:var(--paper);font:500 14px/1.2 var(--sans);text-decoration:none;padding:11px 14px}
+.planbtn{background:var(--paper2);border:0;color:var(--ink);font:500 14px/1.2 var(--sans);padding:11px 14px}
 
 .chips{display:flex;gap:8px;align-items:center;padding:8px 16px;overflow-x:auto;border-bottom:1px solid var(--rule);background:var(--card)}
-.chip{flex:none;font:700 14px/1 var(--disp);padding:9px 13px;border-radius:999px;border:2px solid var(--k,var(--ink));background:none;color:var(--ink)}
-.chip[aria-pressed="true"]{background:var(--k,var(--ink));color:var(--on)}
-.chip.dark[aria-pressed="true"]{color:var(--paper)}
+.chip{flex:none;font:600 13px/1 var(--sans);padding:9px 12px;border:0;border-left:4px solid var(--k,var(--ink));background:var(--paper2);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--k,var(--ink));color:var(--kon,var(--paper))}
 .sep{flex:1;min-width:8px}
-.tool{flex:none;font:700 14px/1 var(--disp);padding:9px 12px;border:1px solid var(--rule);border-radius:4px;background:var(--card)}
+.tool{flex:none;font:500 14px/1 var(--sans);padding:9px 12px;border:0;background:var(--paper2)}
 
 .stage{flex:1;min-height:0;display:flex;position:relative}
 .mapwrap{flex:1;min-width:0;position:relative;overflow:hidden;touch-action:none;background-image:radial-gradient(var(--dot) 1.2px,transparent 1.3px);background-size:22px 22px;cursor:grab}
 .mapwrap.drag{cursor:grabbing}
 .mapwrap svg{width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none}
-.zoom{position:absolute;left:14px;bottom:14px;display:flex;gap:6px;z-index:2}
-.zoom .tool{font-size:18px;min-width:42px;box-shadow:0 1px 4px rgba(0,0,0,.18)}
-.zoom{align-items:center}.hint{font:500 13px var(--body);color:var(--mute);background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:6px 9px}
-@media (max-width:820px){.hint{display:none}}
 .listwrap{flex:1;min-width:0;overflow:auto;padding:16px}
-.panel{position:absolute;top:0;right:0;bottom:0;width:400px;max-width:100%;overflow:auto;background:var(--card);border-left:2px solid var(--ink);padding:16px;z-index:3;box-shadow:-6px 0 18px rgba(0,0,0,.14)}
-@media (max-width:820px){.panel{top:auto;left:0;width:auto;max-height:62%;border-left:0;border-top:2px solid var(--ink)}}
+.panel{position:absolute;top:0;right:0;bottom:0;width:400px;max-width:100%;overflow:auto;background:var(--card);border-left:1px solid var(--ink);padding:16px;z-index:3}
+@media (max-width:820px){.panel{top:auto;left:0;width:auto;max-height:62%;border-left:0;border-top:1px solid var(--ink)}}
 
 /* chart */
 .trunk{stroke:var(--ink);fill:none;stroke-linecap:round}
 .e{fill:none;stroke-linecap:round}
 .n,.pin,.lane,.sg,.tofound{cursor:pointer}
-.n,.e,.sg,.pin,.lane,.tofound{transition:opacity .25s}
+.n,.e,.sg,.pin,.lane,.tofound,.ann{transition:opacity .25s}
 svg.focus .dim{opacity:.1}
-.lbl{font:600 18px var(--disp);fill:var(--ink);text-anchor:middle}
+.lbl{font:500 18px var(--sans);fill:var(--ink);text-anchor:middle}
 .lbl.r{text-anchor:start}
-.hublbl{font:700 24px var(--disp);fill:var(--ink);text-anchor:middle;letter-spacing:.02em}
-.stg{font:700 14px var(--disp);text-anchor:middle;letter-spacing:.08em}
-.stg.fnd{font-size:12px;letter-spacing:.05em}
+.hublbl{font:700 26px var(--sans);font-variant-caps:all-small-caps;letter-spacing:.08em;fill:var(--ink);text-anchor:middle}
+.stg{font:700 17px var(--sans);font-variant-caps:all-small-caps;letter-spacing:.08em;text-anchor:middle;fill:var(--mute)}
+.stg.ink{fill:var(--ink)}
 .bk{fill:var(--paper);opacity:.92}
-.lanetxt{font:700 24px var(--disp);fill:var(--on);text-anchor:middle}
-.bartxt{font:700 22px var(--disp);fill:var(--ink);text-anchor:middle;letter-spacing:.08em}
-.title{font:700 64px var(--disp);fill:var(--ink);letter-spacing:-.02em}
-.tsub{font:400 26px var(--disp);fill:var(--mute)}
-.leg{font:400 19px var(--disp);fill:var(--mute)}
-.pname{font:700 16px var(--disp);fill:var(--ink)}
-.halo{fill:none;stroke:var(--hi);stroke-width:9;opacity:0}
+.lanetxt{font:600 22px var(--sans);text-anchor:middle}
+.bartxt{font:700 24px var(--sans);font-variant-caps:all-small-caps;fill:var(--ink);text-anchor:middle;letter-spacing:.1em}
+.title{font:700 60px var(--serif);fill:var(--ink)}
+.title .plain{font:500 60px var(--sans);fill:var(--strand)}
+.tsub{font:400 26px var(--sans);fill:var(--mute)}
+.leg{font:400 19px var(--sans);fill:var(--mute)}
+.pname{font:700 16px var(--sans);fill:var(--ink)}
+.halo{fill:none;stroke:var(--ink);stroke-width:4;opacity:0}
 .n.sel .halo{opacity:1}
 .badge{display:none}.n.inplan .badge{display:block}
-@keyframes pulse{0%{r:60;opacity:.7}100%{r:92;opacity:0}}
-.pulse{fill:none;stroke:var(--hi);stroke-width:5;animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{0%{r:60;opacity:.8}100%{r:92;opacity:0}}
+.pulse{fill:none;stroke:var(--live);stroke-width:5;animation:pulse 2.2s ease-out infinite}
 svg.started .pulse{display:none}
 @media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:0}.n,.e{transition:none}}
 
 /* panel */
-.panel h2{font:700 26px/1.1 var(--disp);margin:0;letter-spacing:-.01em;text-wrap:balance}
-.panel h3{font:700 12px/1 var(--disp);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:20px 0 6px}
+.panel h2{font:700 25px/1.2 var(--serif);margin:0;text-wrap:balance}
+.panel h3{font-size:14px;line-height:1;color:var(--mute);margin:20px 0 6px}
 .panel p{margin:8px 0 0}
 .ptop{display:flex;justify-content:space-between;gap:8px;margin-bottom:12px}
 .tabs{display:flex;gap:6px}
-.tab{font:700 13px/1 var(--disp);padding:8px 11px;border:1px solid var(--rule);border-radius:4px;background:none}
-.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.stepper{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px;border-radius:6px;background:color-mix(in srgb,var(--k,var(--ink)) 10%,var(--card));border:2px solid var(--k,var(--ink))}
-.stepper span{flex:1;text-align:center;font:700 12px/1.3 var(--disp);letter-spacing:.06em;text-transform:uppercase}
-.stepper button{font:700 14px/1 var(--disp);padding:9px 11px;border-radius:4px;border:0;background:var(--k,var(--ink));color:var(--on)}
-.stepper.ink button{color:var(--paper)}
-.stepper button:disabled{opacity:.35;cursor:default}
+.tab{font:500 13px/1 var(--sans);padding:9px 11px;border:0;background:var(--paper2)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+.stepper{display:flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px;background:var(--paper2);border-left:4px solid var(--k,var(--ink))}
+.stepper span{flex:1;text-align:center;font-size:14px;line-height:1.25;color:var(--ink2)}
+.stepper button{font:500 14px/1 var(--sans);padding:9px 11px;border:0;background:var(--ink);color:var(--paper)}
+.stepper button:disabled{opacity:.3;cursor:default}
 .ph{display:flex;gap:12px;align-items:center}
 .av{flex:none;width:56px;height:56px;border-radius:50%;background:#fff;display:grid;place-items:center;overflow:hidden;border:3px solid var(--k,var(--ink))}
 .av img{width:100%;height:100%;object-fit:cover}
 .av.act{background:var(--k,var(--ink))}.av svg{width:30px;height:30px}
 .av.sm{width:34px;height:34px;border-width:2px}.av.sm svg{width:18px;height:18px}
-.kind{font:700 11.5px/1.3 var(--disp);letter-spacing:.07em;text-transform:uppercase;color:var(--mute);margin:0 0 4px!important}
-.do{border:2px solid var(--ink);border-radius:6px;padding:10px 12px;margin-top:14px;background:var(--paper)}
-.do b{font:700 12px/1 var(--disp);letter-spacing:.08em;text-transform:uppercase}
-.do p{margin:4px 0 0;font-weight:500}
+.kind{font-size:13px;line-height:1.3;color:var(--mute);margin:0 0 4px!important}
+.do{border-left:3px solid var(--ink);padding:10px 12px;margin-top:14px;background:var(--paper2)}
+.do b{font-size:14px;line-height:1}
+.do p{margin:4px 0 0}
 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.btn{font:700 15px/1 var(--disp);padding:11px 14px;border-radius:4px;border:2px solid var(--ink);background:none;text-decoration:none}
-.btn.pri{background:var(--ink);color:var(--paper)}
-.btn.on{background:var(--ok);border-color:var(--ok);color:#fff}
-.pill{display:inline-block;font:700 13px/1 var(--disp);color:var(--on);background:var(--k);padding:6px 10px;border-radius:999px;border:0;margin:0 4px 4px 0}
-.myth{font:700 20px/1.25 var(--disp);letter-spacing:-.01em;margin-top:10px!important}
+.btn{font:500 15px/1 var(--sans);padding:12px 14px;border:0;background:var(--paper2);text-decoration:none}
+.btn.pri,.btn.on{background:var(--ink);color:var(--paper)}
+.pill{display:inline-block;font:600 13px/1 var(--sans);color:var(--kon,#fff);background:var(--k);padding:7px 10px;border:0;margin:0 4px 4px 0}
+.myth{font:500 19px/1.35 var(--sans);color:var(--ink2);margin-top:10px!important}
 .rowbtn{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--rule);padding:8px 0}
 .rowbtn span.t{flex:1;min-width:0;font-weight:500}
 .rowbtn small{color:var(--mute);font-size:12.5px;display:block;font-weight:400}
-.h3btn{background:none;border:0;padding:0;font:700 12px/1 var(--disp);letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--k) 75%,var(--ink));margin:20px 0 6px;display:block;text-decoration:underline;text-underline-offset:3px}
+.h3btn{background:none;border:0;padding:0;font-size:14px;line-height:1;color:var(--ink);margin:20px 0 6px;display:block;text-decoration:underline;text-decoration-color:var(--k);text-decoration-thickness:2px;text-underline-offset:4px}
 details.more{border-top:1px solid var(--rule)}
-details.more summary{cursor:pointer;padding:9px 0;font:700 12px/1.2 var(--disp);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+details.more summary{cursor:pointer;padding:9px 0;font-size:14px;color:var(--mute)}
 details.more[open] summary{color:var(--ink)}
 .plan li{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--rule);padding:10px 0}
 .plan ul{list-style:none;margin:8px 0 0;padding:0}
-.plan input{width:20px;height:20px;margin-top:2px;flex:none}
+.plan input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--ink)}
 .plan .t{flex:1;min-width:0}.plan .done{text-decoration:line-through;color:var(--mute)}
 .x{background:none;border:0;font-size:22px;line-height:1;color:var(--mute);padding:2px 6px}
 .mute{color:var(--mute);font-size:13px}
-.listwrap h2{font:700 26px/1.1 var(--disp);letter-spacing:-.01em;margin:24px 0 4px;color:var(--k,var(--ink))}
-.listwrap h3{font:700 12px/1 var(--disp);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:16px 0 2px}
+.listwrap h2{font:700 25px/1.2 var(--serif);margin:28px 0 4px;padding-left:10px;border-left:4px solid var(--k,var(--ink))}
+.listwrap h3{font-size:14px;line-height:1;color:var(--mute);margin:16px 0 2px}
 .listwrap section{max-width:720px;margin:0 auto}
 </style>
 
@@ -141,7 +144,7 @@ const LG = window.LOGOS || {};
 const W = 3840, H = 1840;
 const SX = [1960, 2360, 2760, 3160, 3560];        // stage columns
 const ROW = [100, 370, 640, 910, 1180, 1450, 1720]; // rows of circles between the path lines
-const PILLX = 1500, BAR1 = 1700, BAR2 = 3770;
+const REACHX = 1440, PILLX = 1650, BAR2 = 3770;
 const ICON = {
   doc:"M7 3h7l4 4v14H7z M14 3v4h4 M10 12h5 M10 16h5", pencil:"M4 20l1-4L16 5l3 3L8 19z M14 7l3 3", chat:"M4 5h16v10H10l-4 4v-4H4z",
   people:"M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 5.5a3 3 0 0 1 0 5.5 M17 14.3c2.3.8 4 3 4 5.7",
@@ -291,12 +294,12 @@ T("funding", 960, 1025, "sat", "Transition\nfunding", { logo:"bluedot", parent:[
   text:"Money shouldn't be what stops you. In September 2026 Coefficient Giving handed its career development and transition funding to BlueDot. BlueDot's Career Transition Grants usually start at $20k and go up to $200k, for people ready to switch full-time: time to produce research or policy work, fill a skill gap or test a path. The application takes about 45 minutes and asks for recent work, milestones and a simple budget. For something smaller, Rapid Grants go up to $20k.",
   do:"Check BlueDot's grants page and note what you'd ask for and why." });
 
-T("pick", 1250, 910, "hub", "PICK A PATH", { icon:"compass", kind:"Step 2", tag:"Six paths", parent:["learn"],
-  text:"Six paths, and most don't need a technical background. They overlap on purpose: a circle with several colours in its ring belongs to several paths, so you can start before you have fully decided. Two bars cross every path: reaching out to people at the start, and meeting the field in person at the end. Your route probably won't be a straight line.",
+T("pick", 1250, 910, "hub", "PICK A PATH", { icon:"compass", kind:"Step 2", tag:"Six paths", parent:["learn"], lx:15,
+  text:"Six paths, and most don't need a technical background. They overlap on purpose: a circle with several colours in its ring belongs to several paths, so you can start before you have fully decided. Every path starts the same way, by reaching out to people in your field, and ends the same way, by meeting the field in person. Your route probably won't be a straight line.",
   do:"Click a coloured path name to see the whole route and what it pays, then press Start this path." });
 
-/* ---------- the two bars every path crosses ---------- */
-NODES.push({ id:"reach", type:"bar", x:BAR1, label:"REACH OUT TO PEOPLE IN YOUR FIELD", seg:["REACH OUT","TO PEOPLE","IN YOUR","FIELD","FIRST"], icon:"chat", lanes:ALL, st:Object.fromEntries(ALL.map(l => [l, -1])), pos:[{ x:BAR1, y:910, lanes:ALL }],
+/* ---------- the two steps every path shares: one node where the paths split, one bar where they end ---------- */
+NODES.push({ id:"reach", type:"hub", label:"REACH OUT", title:"Reach out to people in your field", lx:-60, ly:-68, icon:"chat", lanes:ALL, onTrunk:1, st:Object.fromEntries(ALL.map(l => [l, -1])), pos:[{ x:REACHX, y:910, lanes:ALL }],
   kind:"Every path", tag:"Free · one message a day",
   text:"This is the step every path shares. People in AI safety love to help, and they want more people in the field. Find someone doing the work you want to do, whatever your field is, and ask them one specific question. Most will say yes to twenty minutes. One conversation often leads to an introduction, a project or a job you would never have seen posted.",
   do:"Message one person today. Three sentences: who you are, what you liked about their work, and one specific question." });
@@ -513,6 +516,12 @@ X("taif",["seed"],"Transformative\nAI Fund",{icon:"briefcase",kind:"Funding",tag
   text:"A rolling fund for new projects working on transformative AI, with grants from $10k to $150k. A good fit for a first project before you need seed-scale money.",do:"Read recent grants to see how big and how specific a typical project is."});
 X("manifund",["seed"],"Manifund",{logo:"manifund",kind:"Funding",tag:"Public · fast",url:"https://manifund.org",link:"Open Manifund",
   text:"An open platform where projects post what they need and regrantors fund them in public. Grants can move in days, and reading funded projects shows you what a fundable pitch looks like.",do:"Read three funded projects close to your idea."});
+X("sff",["seed"],"Survival and\nFlourishing Fund",{icon:"briefcase",kind:"Funding",tag:"Rolling",url:"https://survivalandflourishing.fund",link:"Open SFF",
+  text:"One of the larger funders of AI safety organisations, backing work on the long-term survival and flourishing of humanity. It takes applications on a rolling basis.",do:"Read the list of organisations it has funded to see whether yours would fit."});
+X("eaif",["seed","ops:1"],"EA Infrastructure\nFund",{icon:"briefcase",kind:"Funding",tag:"Rolling",url:"https://funds.effectivealtruism.org/funds/ea-community",link:"Open the fund",
+  text:"Funds projects that build the community of people working on pressing problems, including AI safety: groups, events, programs and the infrastructure around them. Applications are rolling.",do:"Read a few recent grants to see what size of project it backs."});
+X("gtr",["seed"],"GTR AI\nSafety Fund",{icon:"briefcase",kind:"Funding",tag:"€50M over 3 to 7 years · rolling",url:"https://gtr-foundation.org/gtr-ai-safety-fund",link:"Open the fund",
+  text:"The Global Technology Risk Foundation's fund for early-stage AI safety organisations and individuals, with €50 million to give out over three to seven years. Applications are rolling.",do:"Check whether it funds individuals or organisations at your stage."});
 X("fundlist",["funding"],"Every open\nfunder",{logo:"aisafety",kind:"Directory",tag:"Kept up to date",url:"https://www.aisafety.com/funding",link:"See the funding list",
   text:"AISafety.com lists every AI safety funder and whether it is accepting applications, from small grants for individuals to large funds for new organisations.",do:"Find the funders open to individuals and bookmark two."});
 
@@ -535,7 +544,7 @@ PEOPLE.forEach(p => p.ini = p.name.split(" ").map(w => w[0]).join(""));
 const PERSON = Object.fromEntries(PEOPLE.map(p => [p.id, p]));
 
 // Click-through order for each path, and for the trunk.
-const TRUNK_SEQ = ["start","stay","podcasts","watch","real","follow","news","buddy","learn","bd_intro","bd_agi","reading","fieldmap","student","campus","pathfinder","major","uni","mid","successif","hip","translate","talk10","advising","jobs","funding","pick"];
+const TRUNK_SEQ = ["start","stay","podcasts","watch","real","follow","news","buddy","learn","bd_intro","bd_agi","reading","fieldmap","advising","jobs","funding","student","campus","pathfinder","major","uni","mid","successif","hip","translate","talk10","pick","reach"];
 const posFor = (n, l) => n.pos.find(p => p.lanes.includes(l)) || n.pos[0];
 const SEQ = { trunk: TRUNK_SEQ };
 LANES.forEach(l => SEQ[l.id] = NODES.filter(n => n.type !== "extra" && n.lanes.includes(l.id)).sort((a, b) => a.st[l.id] - b.st[l.id] || posFor(a, l.id).y - posFor(b, l.id).y || posFor(a, l.id).x - posFor(b, l.id).x).map(n => n.id));
@@ -547,14 +556,16 @@ const extrasAt = key => { const [l, s] = key.split(":"); return NODES.filter(n =
 /* ---------- draw the chart ---------- */
 const svg = document.getElementById("map"), wrap = document.getElementById("mapwrap");
 const col = l => `var(${LANE[l].color})`;
+const kon = l => `var(${LANE[l].color}-on)`;              // type colour that reads on a path's fill (Ink on Saffron and Live, Paper on the dark ones)
+const kv = l => `--k:${col(l)};--kon:${kon(l)}`;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
-const flat = n => n.type === "bar" ? n.label[0] + n.label.slice(1).toLowerCase() : n.label.replace(/\n/g, " ");
+const flat = n => n.title || (n.type === "bar" ? n.label[0] + n.label.slice(1).toLowerCase() : n.label.replace(/\n/g, " "));
 const hcurve = (a, b) => { const m = (a.x + b.x) / 2; return `M${a.x} ${a.y}C${m} ${a.y},${m} ${b.y},${b.x} ${b.y}`; };
 const vcurve = (a, b) => { const m = (a.y + b.y) / 2; return `M${a.x} ${a.y}C${a.x} ${m},${b.x} ${m},${b.x} ${b.y}`; };
 const icon = (name, s, stroke) => `<g transform="translate(${-12 * s},${-12 * s}) scale(${s})"><path d="${ICON[name]}" fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g>`;
 const lines = (label, y, cls, lh, x = 0) => label.split("\n").map((t, i) => `<text class="${cls}" x="${x}" y="${y + i * lh}">${esc(t)}</text>`).join("");
-const cls = n => n.lanes.length ? n.lanes.map(l => "l-" + l).join(" ") : "l-trunk";
-const tick = r => `<circle r="${r}" fill="var(--ok)" stroke="#fff" stroke-width="2"/><path d="M-6 0l4 4 7-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+const cls = n => n.lanes.length ? n.lanes.map(l => "l-" + l).join(" ") + (n.onTrunk ? " l-trunk" : "") : "l-trunk";
+const tick = r => `<circle r="${r}" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/><path d="M-6 0l4 4 7-8" fill="none" stroke="var(--paper)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
 
 function ring(cols, r) {
   const c = 2 * Math.PI * r, w = c / cols.length;
@@ -564,23 +575,25 @@ function nodeSvg(n, p) {
   const a = `data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(flat(n))}"`;
   if (n.type === "bar") {
     const y0 = LANES[0].y - 62, y1 = LANES[5].y + 62;
-    return `<g class="n ${cls(n)}" ${a}><rect class="halo" x="${n.x - 46}" y="${y0 - 10}" width="92" height="${y1 - y0 + 20}" rx="46"/>
-      <rect x="${n.x - 36}" y="${y0}" width="72" height="${y1 - y0}" rx="36" fill="var(--card)" stroke="var(--ink)" stroke-width="6"/>
+    return `<g class="n ${cls(n)}" ${a}><rect class="halo" x="${n.x - 46}" y="${y0 - 10}" width="92" height="${y1 - y0 + 20}"/>
+      <rect x="${n.x - 36}" y="${y0}" width="72" height="${y1 - y0}" fill="var(--card)" stroke="var(--ink)" stroke-width="6"/>
       ${LANES.map(l => `<circle cx="${n.x}" cy="${l.y}" r="15" fill="var(${l.color})" stroke="var(--card)" stroke-width="4"/>`).join("")}
-      ${n.seg.map((t, i) => `<text class="bartxt" transform="translate(${n.x - 11},${(LANES[i].y + LANES[i + 1].y) / 2}) rotate(90)">${esc(t)}</text>`).join("")}
+      ${n.seg.map((t, i) => `<text class="bartxt" transform="translate(${n.x - 9},${(LANES[i].y + LANES[i + 1].y) / 2}) rotate(90)">${esc(t)}</text>`).join("")}
       <g class="badge" transform="translate(${n.x},${y0 - 6})">${tick(15)}</g></g>`;
   }
   const t = `transform="translate(${p.x},${p.y})"`;
-  if (n.type === "hub") return `<g class="n ${cls(n)}" ${a} ${t}>${n.id === "start" ? `<circle class="pulse" r="60"/>` : ""}<circle class="halo" r="58"/>
-    <circle r="46" fill="var(--ink)"/>${icon(n.icon, 1.9, "var(--paper)")}<g transform="translate(${n.id === "pick" ? -70 : 0},0)">${lines(n.label, 88, "hublbl", 30)}</g></g>`;
+  // Hubs sit on the trunk. "Reach out" belongs to every path, so its ring carries all six colours.
+  if (n.type === "hub") return `<g class="n ${cls(n)}" ${a} ${t}>${n.id === "start" ? `<circle class="pulse" r="60"/>` : ""}<circle class="halo" r="60"/>
+    <circle r="46" fill="var(--ink)"/>${n.id === "reach" ? ring(ALL.map(col), 51) : ""}${icon(n.icon, 1.9, "var(--paper)")}<g transform="translate(${n.lx || 0},0)">${lines(n.label, n.ly || 88, "hublbl", 30)}</g></g>`;
   const cols = n.lanes.length ? n.lanes.map(col) : ["var(--ink)"], solo = cols.length === 1 ? cols[0] : "var(--ink)";
+  const soloOn = n.lanes.length === 1 ? kon(n.lanes[0]) : "var(--paper)";
   const img = n.logo && LG[n.logo];
   const face = n.logo
     ? `<circle r="30" fill="#fff"/>${img ? `<image href="${img}" x="-27" y="-27" width="54" height="54" style="clip-path:circle(50%)"/>` : `<text class="lbl" y="8" style="fill:#222">${esc(n.label[0])}</text>`}`
-    : `<circle r="30" fill="${solo}"/>${icon(n.icon, 1.45, solo === "var(--ink)" ? "var(--paper)" : "#fff")}`;
+    : `<circle r="30" fill="${solo}"/>${icon(n.icon, 1.45, soloOn)}`;
   const nl = n.label.split("\n").length;
   return `<g class="n ${cls(n)}" ${a} ${t}><circle class="halo" r="43"/>${face}${ring(cols, 31)}
-    ${n.star || n.open ? `<g transform="translate(27,-27)"><circle r="14" fill="var(--hi)" stroke="var(--card)" stroke-width="2"/>${icon(n.star ? "star" : "flag", .8, "var(--onhi)")}</g>` : ""}
+    ${n.star || n.open ? `<g transform="translate(27,-27)"><circle r="14" fill="var(--ink)" stroke="var(--paper)" stroke-width="2"/>${icon(n.star ? "star" : "flag", .8, "var(--paper)")}</g>` : ""}
     <g class="badge" transform="translate(-27,-27)">${tick(13)}</g>
     ${n.lp === "r" ? lines(n.label, nl > 1 ? -2 : 7, "lbl r", 21, 46) : lines(n.label, 58, "lbl", 21)}</g>`;
 }
@@ -588,23 +601,34 @@ function draw() {
   let e = "", top = "";
   const P = id => NODE[id].pos[0];
   // trunk
-  e += `<path class="trunk l-trunk e" stroke-width="16" d="M${["start", "stay", "learn", "pick"].map(i => P(i).x + " " + P(i).y).join("L")}"/>`;
+  e += `<path class="trunk l-trunk e" stroke-width="16" d="M${["start", "stay", "learn", "pick", "reach"].map(i => P(i).x + " " + P(i).y).join("L")}"/>`;
   ["student", "mid"].forEach(i => e += `<path class="trunk l-trunk e" stroke-width="10" d="${hcurve(P("learn"), P(i))}"/><path class="trunk l-trunk e" stroke-width="10" d="${hcurve(P(i), P("pick"))}"/>`);
-  e += `<path class="trunk l-trunk e" stroke-width="7" d="M${P("student").x} ${P("student").y}V${P("mid").y}"/>`;
+  // Advising, the job board and funding are for everyone, so they hang off the main line on their own stub, not on a line running between the student and mid-career hubs.
+  e += `<path class="trunk l-trunk e" stroke-width="7" d="M${P("advising").x} ${P("advising").y}V${P("funding").y}"/>`;
+  top += `<text class="stg ink ann l-trunk" x="${P("advising").x}" y="${P("advising").y - 50}">For everyone</text>`;
   NODES.filter(n => n.type === "sat" && n.lp !== "r").forEach(n => n.parent.forEach(h => e += `<path class="trunk l-trunk e" stroke-width="5" d="${vcurve(P(h), n.pos[0])}"/>`));
   // paths
   LANES.forEach(l => {
     const c = `var(${l.color})`;
-    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="${hcurve(P("pick"), { x: PILLX - 112, y: l.y })}"/>`;
+    e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="${hcurve(P("reach"), { x: PILLX - 112, y: l.y })}"/>`;
     e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="11" d="M${PILLX} ${l.y}H${BAR2}"/>`;
-    top += `<g class="lane l-${l.id}" data-lane="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)} path" transform="translate(${PILLX},${l.y})"><rect x="-112" y="-33" width="224" height="66" rx="33" fill="${c}"/><text class="lanetxt" y="8">${esc(l.name)}</text></g>`;
-    l.stages.forEach((s, i) => top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${esc(l.name)} stage ${i + 1}: ${esc(s)}">
+    top += `<g class="lane l-${l.id}" data-lane="${l.id}" tabindex="0" role="button" aria-label="${esc(l.name)} path" transform="translate(${PILLX},${l.y})"><rect x="-112" y="-30" width="224" height="60" fill="${c}"/><text class="lanetxt" y="8" style="fill:${kon(l.id)}">${esc(l.name)}</text></g>`;
+    l.stages.forEach((s, i) => {
+      top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${esc(l.name)} stage ${i + 1}: ${esc(s)}">
       <circle cx="${SX[i]}" cy="${l.y}" r="12" fill="var(--paper)" stroke="${c}" stroke-width="6"/>
-      <text class="stg" x="${SX[i] - 112}" y="${l.y + 5}" fill="color-mix(in srgb,${c} 78%,var(--ink))">${i + 1} · ${esc(s.toUpperCase())}</text></g>`);
+      <text class="stg" x="${SX[i] - 112}" y="${l.y + 6}">${i + 1} · ${esc(s)}</text></g>`;
+      // Smaller options at this stage aren't drawn; a "+N more" tag opens the stage with all of them listed.
+      const m = extrasAt(`${l.id}:${i}`);
+      if (!m.length) return;
+      const x = SX[i] + (i < 4 ? 200 : -200), y = l.y + 62;
+      e += `<path class="e l-${l.id}" stroke="${c}" stroke-width="3" stroke-dasharray="2 7" d="${vcurve({ x, y: y - 15 }, { x: SX[i], y: l.y })}"/>`;
+      top += `<g class="sg l-${l.id}" data-stage="${l.id}:${i}" tabindex="0" role="button" aria-label="${m.length} more ${esc(l.name)} options at stage ${i + 1}" transform="translate(${x},${y})">
+      <rect x="-46" y="-15" width="92" height="30" fill="var(--paper)" stroke="${c}" stroke-width="3"/><text class="stg ink" y="6">+${m.length} more</text></g>`;
+    });
     // Past the last stage, every other path points on to founding something.
     if (l.id !== "founders") top += `<g class="tofound l-${l.id}" data-found="${l.id}" tabindex="0" role="button" aria-label="From ${esc(l.name)} to founding an organisation" transform="translate(${(SX[4] + BAR2) / 2 - 10},${l.y})">
-      <rect x="-56" y="-16" width="112" height="32" rx="16" fill="var(--paper)" stroke="var(--f)" stroke-width="4"/>
-      <text class="stg fnd" y="4" fill="color-mix(in srgb,var(--f) 78%,var(--ink))">→ FOUNDERS</text></g>`;
+      <rect x="-56" y="-16" width="112" height="32" fill="var(--f)"/>
+      <text class="stg" y="6" style="fill:var(--f-on)">→ Founders</text></g>`;
   });
   NODES.filter(n => n.type === "leaf").forEach(n => n.pos.forEach(p => p.lanes.forEach(l => e += `<path class="e l-${l}" stroke="${col(l)}" stroke-width="5" d="${vcurve(p, { x: SX[p.stage], y: LANE[l].y })}"/>`)));
   const pins = PEOPLE.map(p => { const q = posFor(NODE[p.at], p.lane); return `<g class="pin l-${p.lane}" data-person="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}'s route" transform="translate(${q.x + 40},${q.y - 40})">
@@ -613,14 +637,15 @@ function draw() {
   const legend = `<g transform="translate(70,1668)">
     <text class="hublbl" style="text-anchor:start" y="0">How to read this map</text>
     <g transform="translate(22,44)"><circle r="17" fill="#fff"/>${ring(["var(--t)"], 18)}<text class="leg" x="36" y="7">Logo circle: a course, program or employer</text></g>
-    <g transform="translate(22,90)"><circle r="17" fill="var(--o)"/>${icon("pencil", .9, "#fff")}<text class="leg" x="36" y="7">Solid circle: something you do yourself</text></g>
+    <g transform="translate(22,90)"><circle r="17" fill="var(--o)"/>${icon("pencil", .9, "var(--o-on)")}<text class="leg" x="36" y="7">Solid circle: something you do yourself</text></g>
     <g transform="translate(520,44)"><circle r="17" fill="#fff"/>${ring(["var(--t)", "var(--p)", "var(--c)"], 18)}<text class="leg" x="36" y="7">Several colours: counts on several paths</text></g>
     <g transform="translate(520,90)"><circle r="15" fill="var(--ink)" stroke="var(--c)" stroke-width="5"/><text class="leg" x="36" y="7">Initials: a real person who took this route</text></g>
+    <g transform="translate(1050,44)"><rect x="-26" y="-12" width="52" height="24" fill="var(--paper)" stroke="var(--t)" stroke-width="3"/><text class="stg ink" style="font-size:14px" y="5">+3</text><text class="leg" x="38" y="7">More: smaller options at that stage</text></g>
     <text class="leg" x="0" y="138">Scroll to move · pinch or Ctrl + scroll to zoom · programs and deadlines checked October 2026</text></g>`;
   const nodes = NODES.map(n => n.type === "bar" ? nodeSvg(n) : n.pos.map(p => nodeSvg(n, p)).join("")).join("");
   svg.innerHTML = `<g id="edges">${e}</g>
-    <text class="title" x="70" y="130">Worried about AI? <tspan fill="var(--hi)">Here’s what you can do.</tspan></text>
-    <text class="tsub" x="72" y="178">Start on the left. Six paths on the right. Click any circle, then press Next to walk the path.</text>
+    <text class="title" x="70" y="130">Worried about AI? <tspan class="plain">Here’s what you can do</tspan>.</text>
+    <text class="tsub" x="72" y="180">Start on the left. Six paths on the right. Click any circle, then press Next to walk the path.</text>
     ${legend}<g id="top">${top}</g><g id="nodes">${nodes}</g><g id="pins">${pins}</g>`;
   backings();
 }
@@ -638,7 +663,7 @@ function backings() {
 /* ---------- view: the viewBox always matches the frame's shape, so pan and zoom are exact ---------- */
 const panel = document.getElementById("panel"), listwrap = document.getElementById("listwrap"), chips = document.getElementById("chips"), planbtn = document.getElementById("planbtn");
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
-const REG = { all: { x: -30, y: -20, w: W + 60, h: H + 40 }, trunk: { x: 40, y: 250, w: 1330, h: 1370 } };
+const REG = { all: { x: -30, y: -20, w: W + 60, h: H + 40 }, trunk: { x: 40, y: 250, w: 1500, h: 1370 } };
 LANES.forEach(l => REG[l.id] = { x: 1290, y: clampN(l.y - 335, 0, H - 670), w: W - 1270, h: 670 });
 let vb = { x: 0, y: 0, w: W, h: H }, anim = 0, focus = "all";
 const size = () => ({ cw: wrap.clientWidth || 1200, ch: wrap.clientHeight || 700 });
@@ -702,17 +727,17 @@ const save = () => { try { localStorage.setItem("aisafety-map-plan", JSON.string
 try { if (localStorage.getItem("aisafety-map-started")) svg.classList.add("started"); } catch (_) {}
 const started = () => { svg.classList.add("started"); try { localStorage.setItem("aisafety-map-started", "1"); } catch (_) {} };
 
-const avatar = (n, sm) => { const kk = n.lanes && n.lanes.length === 1 ? col(n.lanes[0]) : "var(--ink)", img = n.logo && LG[n.logo];
-  return `<span class="av ${sm ? "sm" : ""} ${n.logo ? "" : "act"}" style="--k:${kk}">${img ? `<img src="${img}" alt="">` : `<svg viewBox="0 0 24 24"><path d="${ICON[n.icon || "star"]}" fill="none" stroke="${n.logo ? "#222" : kk === "var(--ink)" ? "var(--paper)" : "#fff"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</span>`; };
+const avatar = (n, sm) => { const one = n.lanes && n.lanes.length === 1, kk = one ? col(n.lanes[0]) : "var(--ink)", img = n.logo && LG[n.logo];
+  return `<span class="av ${sm ? "sm" : ""} ${n.logo ? "" : "act"}" style="--k:${kk}">${img ? `<img src="${img}" alt="">` : `<svg viewBox="0 0 24 24"><path d="${ICON[n.icon || "star"]}" fill="none" stroke="${n.logo ? "#222" : one ? kon(n.lanes[0]) : "var(--paper)"}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</span>`; };
 const rowBtn = (n, c) => `<button class="rowbtn" data-go="${n.id}" ${c ? `data-ctx="${c}"` : ""}>${avatar(n, 1)}<span class="t">${esc(flat(n))}<small>${esc(n.tag || n.kind || "")}</small></span>${plan[n.id] ? `<span class="mute">${plan[n.id].done ? "done" : "in plan"}</span>` : ""}</button>`;
-const personBtn = p => `<button class="rowbtn" data-person="${p.id}"><span class="av sm act" style="--k:${col(p.lane)}"><b style="color:#fff;font:700 13px var(--disp)">${p.ini}</b></span><span class="t">${esc(p.name)}<small>${esc(p.role)}</small></span></button>`;
+const personBtn = p => `<button class="rowbtn" data-person="${p.id}"><span class="av sm act" style="${kv(p.lane)}"><b style="color:#fff;font:700 13px var(--disp)">${p.ini}</b></span><span class="t">${esc(p.name)}<small>${esc(p.role)}</small></span></button>`;
 const moreRows = (key, c) => { const m = extrasAt(key); return m.length ? `<details class="more"><summary>${m.length} more ${m.length === 1 ? "option" : "options"}</summary>${m.map(n => rowBtn(n, c)).join("")}</details>` : ""; };
-const foundBtn = l => `<button class="rowbtn" data-found="${l}"><span class="av sm act" style="--k:var(--f)"><svg viewBox="0 0 24 24"><path d="${ICON.star}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="t">Start an organisation<small>From ${esc(LANE[l].name.toLowerCase())} to founder</small></span></button>`;
+const foundBtn = l => `<button class="rowbtn" data-found="${l}"><span class="av sm act" style="--k:var(--f)"><svg viewBox="0 0 24 24"><path d="${ICON.star}" fill="none" stroke="var(--f-on)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="t">Start an organisation<small>From ${esc(LANE[l].name.toLowerCase())} to founder</small></span></button>`;
 const count = () => Object.keys(plan).filter(i => NODE[i]).length;
 
 function mark() {
   svg.classList.toggle("focus", focus !== "all");
-  svg.querySelectorAll(".n,.e,.sg,.pin,.lane,.tofound").forEach(el => el.classList.toggle("dim", focus !== "all" && !el.classList.contains("l-" + focus)));
+  svg.querySelectorAll(".n,.e,.sg,.pin,.lane,.tofound,.ann").forEach(el => el.classList.toggle("dim", focus !== "all" && !el.classList.contains("l-" + focus)));
   svg.querySelectorAll(".n").forEach(el => { el.classList.toggle("sel", el.dataset.id === sel); el.classList.toggle("inplan", !!plan[el.dataset.id]); });
   chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.f === focus));
   planbtn.textContent = `My plan (${count()})`;
@@ -743,9 +768,9 @@ function showNode(id, c, follow) {
     <div class="do"><b>Do this</b><p>${esc(n.do)}</p></div>
     <div class="btns">${n.url ? `<a class="btn pri" href="${n.url}" target="_blank" rel="noopener">${esc(n.link || "Open site")} &#8599;</a>` : ""}
       <button class="btn ${plan[id] ? "on" : ""}" data-plan="${id}">${plan[id] ? "In my plan ✓" : "Add to my plan"}</button></div>
-    ${n.lanes.length > 1 ? `<h3>Counts on ${n.lanes.length === 6 ? "every path" : n.lanes.length + " paths"}</h3><div>${n.lanes.map(l => `<button class="pill" style="--k:${col(l)}" data-go="${id}" data-ctx="${l}" data-follow="1">${esc(LANE[l].name)}${l === ctx ? " ✓" : ""}</button>`).join("")}</div><p class="mute">Pick a path to keep clicking through from here along that line.</p>`
-      : n.lanes.length ? `<h3>On this path</h3><div><button class="pill" style="--k:${col(n.lanes[0])}" data-lanego="${n.lanes[0]}">${esc(LANE[n.lanes[0]].name)}</button></div>` : ""}
-    ${id === "pick" ? `<h3>The six paths</h3><div>${LANES.map(l => `<button class="pill" style="--k:${col(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>` : ""}
+    ${n.lanes.length > 1 ? `<h3>Counts on ${n.lanes.length === 6 ? "every path" : n.lanes.length + " paths"}</h3><div>${n.lanes.map(l => `<button class="pill" style="${kv(l)}" data-go="${id}" data-ctx="${l}" data-follow="1">${esc(LANE[l].name)}${l === ctx ? " ✓" : ""}</button>`).join("")}</div><p class="mute">Pick a path to keep clicking through from here along that line.</p>`
+      : n.lanes.length ? `<h3>On this path</h3><div><button class="pill" style="${kv(n.lanes[0])}" data-lanego="${n.lanes[0]}">${esc(LANE[n.lanes[0]].name)}</button></div>` : ""}
+    ${id === "pick" ? `<h3>The six paths</h3><div>${LANES.map(l => `<button class="pill" style="${kv(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>` : ""}
     ${more.length ? `<h3>More like this</h3>${more.map(m => rowBtn(m, ctx)).join("")}` : ""}
     ${lead ? `<h3>Where this can lead</h3>${foundBtn(ctx)}` : ""}
     ${here.length ? `<h3>Who went this way</h3>${here.map(personBtn).join("")}` : ""}`);
@@ -756,11 +781,11 @@ function step(d) { if (!sel || NODE[sel].type === "extra") return; const seq = S
 function showLane(id) {
   const l = LANE[id]; sel = null; ctx = id; lastInfo = () => showLane(id);
   const ppl = PEOPLE.filter(p => p.lane === id);
-  openPanel(`<p class="kind">Path</p><h2 style="color:${col(id)}">${esc(l.name)}</h2>
+  openPanel(`<p class="kind">Path</p><h2>${esc(l.name)}</h2>
     <p class="myth">${esc(l.myth)}</p><p>${esc(l.why)}</p>
     <div class="btns"><button class="btn pri" data-go="${SEQ[id][0]}" data-ctx="${id}" data-follow="1">Start this path &#8250;</button></div>
     <h3>First, on every path</h3>${rowBtn(NODE.reach, id)}
-    ${l.stages.map((s, i) => `<button class="h3btn" style="--k:${col(id)}" data-stage="${id}:${i}">${i + 1} · ${esc(s)}</button>${stageNodes(id, i).map(n => rowBtn(n, id)).join("")}${moreRows(id + ":" + i, id)}`).join("")}
+    ${l.stages.map((s, i) => `<button class="h3btn" style="${kv(id)}" data-stage="${id}:${i}">${i + 1} · ${esc(s)}</button>${stageNodes(id, i).map(n => rowBtn(n, id)).join("")}${moreRows(id + ":" + i, id)}`).join("")}
     <h3>Then, on every path</h3>${rowBtn(NODE.events, id)}
     ${id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(id)}` : ""}
     <h3>What it pays</h3><p>${esc(l.pay)}</p><h3>Know before you start</h3><p>${esc(l.caveat)}</p>
@@ -770,8 +795,8 @@ function showLane(id) {
 function showStage(id, i) {
   const l = LANE[id]; sel = null; ctx = id; lastInfo = () => showStage(id, i);
   const ns = stageNodes(id, i), more = extrasAt(id + ":" + i), moving = focus !== id;
-  openPanel(`<div class="stepper" style="--k:${col(id)}"><button data-stage="${id}:${i - 1}" ${i <= 0 ? "disabled" : ""}>&#8249; Stage</button><span>${esc(l.name)}<br>stage ${i + 1} of ${l.stages.length}</span><button data-stage="${id}:${i + 1}" ${i >= l.stages.length - 1 ? "disabled" : ""}>Stage &#8250;</button></div>
-    <p class="kind">${esc(l.name)} · stage ${i + 1}</p><h2 style="color:${col(id)}">${esc(l.stages[i])}</h2>
+  openPanel(`<div class="stepper" style="${kv(id)}"><button data-stage="${id}:${i - 1}" ${i <= 0 ? "disabled" : ""}>&#8249; Stage</button><span>${esc(l.name)}<br>stage ${i + 1} of ${l.stages.length}</span><button data-stage="${id}:${i + 1}" ${i >= l.stages.length - 1 ? "disabled" : ""}>Stage &#8250;</button></div>
+    <p class="kind">${esc(l.name)} · stage ${i + 1}</p><h2>${esc(l.stages[i])}</h2>
     <p>${ns.length} ${ns.length === 1 ? "option" : "options"} at this stage. You don't need all of them. Pick the one you could start this week.</p>
     ${ns.map(n => rowBtn(n, id)).join("")}
     ${more.length ? `<h3>Smaller options, not on the map</h3>${more.map(n => rowBtn(n, id)).join("")}` : ""}
@@ -789,8 +814,8 @@ const FOUND = {
 };
 function showFound(l) {
   sel = null; ctx = l; lastInfo = () => showFound(l);
-  openPanel(`<div class="stepper" style="--k:${col(l)}"><button data-lanego="${l}">&#8249; ${esc(LANE[l].name)}</button><span>Where this can lead</span></div>
-    <p class="kind">${esc(LANE[l].name)} · then</p><h2 style="color:${col("founders")}">Start an organisation</h2>
+  openPanel(`<div class="stepper" style="${kv(l)}"><button data-lanego="${l}">&#8249; ${esc(LANE[l].name)}</button><span>Where this can lead</span></div>
+    <p class="kind">${esc(LANE[l].name)} · then</p><h2>Start an organisation</h2>
     <p>The end of one path can be the start of another. Funders say money is not the bottleneck: founders are, and the best founders know a problem from the inside. A few years of doing the work is exactly that.</p>
     <p>${esc(FOUND[l])}</p>
     <h3>Where to start</h3>${["spinout", "bdincubator", "halcyon", "seed"].map(i => rowBtn(NODE[i], "founders")).join("")}
@@ -799,7 +824,7 @@ function showFound(l) {
 }
 function showPerson(id) {
   const p = PERSON[id]; sel = p.at; lastInfo = () => showPerson(id);
-  openPanel(`<div class="ph"><span class="av act" style="--k:${col(p.lane)}"><b style="color:#fff;font:700 22px var(--disp)">${p.ini}</b></span><div><p class="kind">A real route</p><h2>${esc(p.name)}</h2></div></div>
+  openPanel(`<div class="ph"><span class="av act" style="${kv(p.lane)}"><b style="color:#fff;font:700 22px var(--disp)">${p.ini}</b></span><div><p class="kind">A real route</p><h2>${esc(p.name)}</h2></div></div>
     <p><b>${esc(p.role)}</b></p><p>${esc(p.story)}</p><h3>Their route on this map</h3>${p.route.map(i => rowBtn(NODE[i])).join("")}
     <p class="mute" style="margin-top:12px">Every person on this map faced rejections along the way. None of them started qualified.</p>`);
   mark();
@@ -810,7 +835,7 @@ function showHome() {
     <p>You don't need to work out the whole path today. These three take about an hour between them and open most of the map.</p>
     ${["bd_agi", "advising", "reach"].map(i => rowBtn(NODE[i])).join("")}
     <div class="btns"><button class="btn pri" data-starter>Add all three to my plan</button><button class="btn" data-go="start" data-ctx="trunk" data-follow="1">Walk me through &#8250;</button></div>
-    <h3>Or jump to a path</h3><div>${LANES.map(l => `<button class="pill" style="--k:${col(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>`);
+    <h3>Or jump to a path</h3><div>${LANES.map(l => `<button class="pill" style="${kv(l.id)}" data-lanego="${l.id}">${esc(l.name)}</button>`).join("")}</div>`);
   mark();
 }
 let lastInfo = showHome;
@@ -830,13 +855,13 @@ function planText() { return "My AI safety plan\n\n" + Object.keys(plan).filter(
 function renderList() {
   let h = "";
   if (focus === "all" || focus === "trunk") h += `<section><h2>Getting started</h2>${TRUNK_SEQ.map(i => NODE[i].type === "hub" ? `<h3>${esc(NODE[i].label)}</h3>${rowBtn(NODE[i], "trunk")}` : rowBtn(NODE[i], "trunk") + moreRows(i, "trunk")).join("")}</section>`;
-  LANES.filter(l => focus === "all" || focus === l.id).forEach(l => h += `<section style="--k:${col(l.id)}"><h2>${esc(l.name)}</h2><p>${esc(l.myth)}</p><h3>First, on every path</h3>${rowBtn(NODE.reach, l.id)}${l.stages.map((s, i) => `<h3>${i + 1} · ${esc(s)}</h3>${stageNodes(l.id, i).map(n => rowBtn(n, l.id)).join("")}${moreRows(l.id + ":" + i, l.id)}`).join("")}<h3>Then, on every path</h3>${rowBtn(NODE.events, l.id)}${l.id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(l.id)}` : ""}</section>`);
+  LANES.filter(l => focus === "all" || focus === l.id).forEach(l => h += `<section style="${kv(l.id)}"><h2>${esc(l.name)}</h2><p>${esc(l.myth)}</p><h3>First, on every path</h3>${rowBtn(NODE.reach, l.id)}${l.stages.map((s, i) => `<h3>${i + 1} · ${esc(s)}</h3>${stageNodes(l.id, i).map(n => rowBtn(n, l.id)).join("")}${moreRows(l.id + ":" + i, l.id)}`).join("")}<h3>Then, on every path</h3>${rowBtn(NODE.events, l.id)}${l.id !== "founders" ? `<h3>Where this can lead</h3>${foundBtn(l.id)}` : ""}</section>`);
   listwrap.innerHTML = h;
 }
 function setView(v) { view = v; wrap.hidden = v !== "map"; listwrap.hidden = v !== "list"; document.getElementById("vbtn").textContent = v === "map" ? "List view" : "Map view"; if (v === "list") renderList(); else { backings(); cancelAnimationFrame(anim); setVB(clampVB(viewFor(REG[focus]))); } }
 
 chips.innerHTML = `<button class="chip dark" data-f="all">Whole map</button><button class="chip dark" data-f="trunk">Getting started</button>` +
-  LANES.map(l => `<button class="chip" data-f="${l.id}" style="--k:${col(l.id)}">${esc(l.name)}</button>`).join("") +
+  LANES.map(l => `<button class="chip" data-f="${l.id}" style="${kv(l.id)}">${esc(l.name)}</button>`).join("") +
   `<span class="sep"></span><button class="tool" id="zout" aria-label="Zoom out">&minus;</button><button class="tool" id="zin" aria-label="Zoom in">+</button><button class="tool" id="zfit">Fit</button><button class="tool" id="vbtn">List view</button>`;
 chips.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.f) { const f = b.dataset.f; if (LANE[f]) { focus = f; showLane(f); flyTo(viewFor(REG[f])); } else if (f === "trunk") { focus = f; showHome(); flyTo(viewFor(REG[f])); } else setFocus(f); if (view === "list") renderList(); }
